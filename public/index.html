@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Chùa Tịnh Tâm - Đi chùa online</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+  <!-- Join screen -->
+  <div id="join-screen">
+    <div class="join-box">
+      <h1>🙏 Chùa Tịnh Tâm</h1>
+      <p>Phiên đi chùa online đa người dùng</p>
+      <input type="text" id="name-input" placeholder="Tên của bạn (Phật tử)..." maxlength="20" autocomplete="off" />
+      <button id="join-btn">Vào chùa</button>
+      <p class="hint">Nam Mô A Di Đà Phật</p>
+    </div>
+  </div>
+
+  <!-- Main temple view -->
+  <div id="app" class="hidden">
+    <div id="canvas-container"></div>
+
+    <!-- Top bar -->
+    <div class="top-bar">
+      <div class="live-badge">● LIVE</div>
+      <div class="temple-name">Chùa Tịnh Tâm</div>
+      <div class="online-count" id="online-count">0 người</div>
+    </div>
+
+    <!-- Chat -->
+    <div id="chat-box">
+      <div id="messages"></div>
+      <div class="chat-input-row">
+        <input type="text" id="chat-input" placeholder="Gửi lời cầu nguyện..." maxlength="120" />
+        <button id="send-btn">Gửi</button>
+      </div>
+    </div>
+
+    <!-- Quick pray buttons -->
+    <div class="pray-buttons">
+      <button data-pray="nammo">Nam Mô 🙏</button>
+      <button data-pray="an">Cầu an</button>
+      <button data-pray="loc">Cầu lộc</button>
+      <button data-pray="suc">Sức khỏe</button>
+      <button data-pray="hoa">Cúng hoa 🌺</button>
+    </div>
+
+    <!-- Bottom info -->
+    <div class="bottom-bar">
+      <span id="my-name"></span>
+      <span class="heart">❤️ Tâm thành</span>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

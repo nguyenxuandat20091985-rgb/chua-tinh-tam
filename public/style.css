@@ -1,0 +1,283 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: #0a0a12;
+  color: #fff;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+}
+
+.hidden { display: none !important; }
+
+/* Join screen */
+#join-screen {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(160deg, #1a1208 0%, #2d1b0e 40%, #0f0a05 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.join-box {
+  background: rgba(40, 25, 10, 0.85);
+  border: 1px solid #c9a227;
+  border-radius: 16px;
+  padding: 2rem;
+  text-align: center;
+  max-width: 340px;
+  width: 90%;
+  box-shadow: 0 0 40px rgba(201, 162, 39, 0.25);
+}
+
+.join-box h1 {
+  font-size: 1.8rem;
+  color: #ffd700;
+  margin-bottom: 0.5rem;
+}
+
+.join-box p {
+  color: #e8d5a3;
+  margin-bottom: 1.2rem;
+  font-size: 0.95rem;
+}
+
+#name-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #8b7355;
+  border-radius: 8px;
+  background: #1a1208;
+  color: #fff;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  outline: none;
+}
+
+#name-input:focus {
+  border-color: #ffd700;
+}
+
+#join-btn {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #c9a227, #e8c547);
+  border: none;
+  border-radius: 8px;
+  color: #1a1208;
+  font-weight: 700;
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+#join-btn:active {
+  transform: scale(0.97);
+}
+
+.hint {
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  color: #a89060;
+}
+
+/* App */
+#app {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
+
+#canvas-container {
+  position: absolute;
+  inset: 0;
+}
+
+#canvas-container canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Top bar */
+.top-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
+  z-index: 10;
+  pointer-events: none;
+}
+
+.live-badge {
+  background: #e11d48;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+.temple-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #ffd700;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+}
+
+.online-count {
+  margin-left: auto;
+  background: rgba(0,0,0,0.5);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+}
+
+/* Chat */
+#chat-box {
+  position: absolute;
+  left: 10px;
+  bottom: 70px;
+  width: min(320px, 85vw);
+  max-height: 45vh;
+  display: flex;
+  flex-direction: column;
+  z-index: 10;
+}
+
+#messages {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 0;
+  mask-image: linear-gradient(to bottom, transparent, black 15%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, black 15%);
+}
+
+.msg {
+  background: rgba(0,0,0,0.55);
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  line-height: 1.35;
+  word-break: break-word;
+  animation: fadeIn 0.25s ease;
+}
+
+.msg.special {
+  background: rgba(201, 162, 39, 0.35);
+  border: 1px solid rgba(255, 215, 0, 0.4);
+}
+
+.msg .name {
+  font-weight: 600;
+  margin-right: 4px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.chat-input-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+#chat-input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 20px;
+  background: rgba(0,0,0,0.6);
+  color: #fff;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+#chat-input:focus {
+  border-color: #c9a227;
+}
+
+#send-btn {
+  padding: 8px 14px;
+  background: #c9a227;
+  border: none;
+  border-radius: 20px;
+  color: #1a1208;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Pray buttons */
+.pray-buttons {
+  position: absolute;
+  right: 10px;
+  bottom: 70px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 10;
+}
+
+.pray-buttons button {
+  padding: 8px 12px;
+  background: rgba(30, 20, 8, 0.85);
+  border: 1px solid #c9a227;
+  border-radius: 20px;
+  color: #ffd700;
+  font-size: 0.8rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.pray-buttons button:active {
+  background: rgba(201, 162, 39, 0.5);
+}
+
+/* Bottom bar */
+.bottom-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 12px 16px;
+  background: linear-gradient(to top, rgba(0,0,0,0.75), transparent);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 10;
+  font-size: 0.9rem;
+}
+
+.heart {
+  color: #ff6b8a;
+}
+
+/* Mobile tweaks */
+@media (max-width: 480px) {
+  .pray-buttons {
+    bottom: 120px;
+  }
+  #chat-box {
+    bottom: 110px;
+    max-height: 35vh;
+  }
+}
