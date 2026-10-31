@@ -1,450 +1,81 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0a0a12;color:#fff;overflow:hidden;height:100vh;width:100vw}
+.hidden{display:none!important}
 
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  background: #0a0a12;
-  color: #fff;
-  overflow: hidden;
-  height: 100vh;
-  width: 100vw;
-}
-
-.hidden { display: none !important; }
-
-/* Join screen */
-#join-screen {
-  position: fixed;
-  inset: 0;
-  background: linear-gradient(160deg, #1a1208 0%, #2d1b0e 40%, #0f0a05 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-}
-
-.join-box {
-  background: rgba(40, 25, 10, 0.9);
-  border: 1px solid #c9a227;
-  border-radius: 20px;
-  padding: 2.2rem 1.8rem;
-  text-align: center;
-  max-width: 360px;
-  width: 92%;
-  box-shadow: 0 0 50px rgba(201, 162, 39, 0.3);
-}
-
-.lotus {
-  font-size: 2.5rem;
-  margin-bottom: 0.3rem;
-}
-
-.join-box h1 {
-  font-size: 1.9rem;
-  color: #ffd700;
-  margin-bottom: 0.4rem;
-  text-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
-}
-
-.join-box p {
-  color: #e8d5a3;
-  margin-bottom: 1.3rem;
-  font-size: 0.95rem;
-}
-
-#name-input {
-  width: 100%;
-  padding: 13px 16px;
-  border: 1px solid #8b7355;
-  border-radius: 10px;
-  background: #1a1208;
-  color: #fff;
-  font-size: 1rem;
-  margin-bottom: 1rem;
-  outline: none;
-}
-
-#name-input:focus {
-  border-color: #ffd700;
-  box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
-}
-
-#join-btn {
-  width: 100%;
-  padding: 13px;
-  background: linear-gradient(135deg, #c9a227, #e8c547);
-  border: none;
-  border-radius: 10px;
-  color: #1a1208;
-  font-weight: 700;
-  font-size: 1.1rem;
-  cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.15s;
-}
-
-#join-btn:active {
-  transform: scale(0.97);
-}
-
-.hint {
-  margin-top: 1.1rem;
-  font-size: 0.88rem;
-  color: #a89060;
-}
+/* Join */
+#join-screen{position:fixed;inset:0;background:linear-gradient(160deg,#1a1208 0%,#2d1b0e 40%,#0f0a05 100%);display:flex;align-items:center;justify-content:center;z-index:100}
+.join-box{background:rgba(40,25,10,.92);border:1px solid #c9a227;border-radius:20px;padding:2.2rem 1.8rem;text-align:center;max-width:360px;width:92%;box-shadow:0 0 50px rgba(201,162,39,.35)}
+.lotus{font-size:2.6rem;margin-bottom:.3rem}
+.join-box h1{font-size:1.9rem;color:#ffd700;margin-bottom:.4rem;text-shadow:0 0 20px rgba(255,215,0,.45)}
+.join-box p{color:#e8d5a3;margin-bottom:1.3rem;font-size:.95rem}
+#name-input{width:100%;padding:13px 16px;border:1px solid #8b7355;border-radius:10px;background:#1a1208;color:#fff;font-size:1rem;margin-bottom:1rem;outline:none}
+#name-input:focus{border-color:#ffd700;box-shadow:0 0 12px rgba(255,215,0,.3)}
+#join-btn{width:100%;padding:13px;background:linear-gradient(135deg,#c9a227,#e8c547);border:none;border-radius:10px;color:#1a1208;font-weight:700;font-size:1.1rem;cursor:pointer}
+#join-btn:active{transform:scale(.97)}
+.hint{margin-top:1.1rem;font-size:.88rem;color:#a89060}
 
 /* App */
-#app {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
-}
+#app{position:relative;width:100vw;height:100vh}
+#canvas-container{position:absolute;inset:0}
+#canvas-container canvas{display:block;width:100%!important;height:100%!important}
 
-#canvas-container {
-  position: absolute;
-  inset: 0;
-}
-
-#canvas-container canvas {
-  display: block;
-  width: 100% !important;
-  height: 100% !important;
-}
+/* Floating names (TikTok style) */
+#floating-names{position:absolute;inset:0;pointer-events:none;z-index:8;overflow:hidden}
+.float-name{position:absolute;background:rgba(0,0,0,.55);padding:3px 8px;border-radius:6px;font-size:.72rem;white-space:nowrap;transform:translate(-50%,-100%);animation:floatUp 4s ease-out forwards;opacity:0}
+@keyframes floatUp{0%{opacity:0;transform:translate(-50%,-80%) scale(.8)}15%{opacity:1;transform:translate(-50%,-110%) scale(1)}70%{opacity:.9}100%{opacity:0;transform:translate(-50%,-160%)}}
 
 /* Top bar */
-.top-bar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  padding: 10px 14px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.75), transparent);
-  z-index: 10;
-  pointer-events: none;
-}
+.top-bar{position:absolute;top:0;left:0;right:0;padding:10px 14px;display:flex;align-items:center;gap:12px;background:linear-gradient(to bottom,rgba(0,0,0,.78),transparent);z-index:10;pointer-events:none}
+.live-badge{background:#e11d48;color:#fff;font-size:.75rem;font-weight:700;padding:3px 9px;border-radius:4px;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.65}}
+.temple-name{font-weight:600;font-size:.95rem;color:#ffd700;text-shadow:0 1px 4px rgba(0,0,0,.8)}
+.online-count{margin-left:auto;background:rgba(0,0,0,.55);padding:4px 12px;border-radius:20px;font-size:.8rem}
 
-.live-badge {
-  background: #e11d48;
-  color: #fff;
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 3px 9px;
-  border-radius: 4px;
-  letter-spacing: 0.5px;
-  animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
-}
-
-.temple-name {
-  font-weight: 600;
-  font-size: 0.95rem;
-  color: #ffd700;
-  text-shadow: 0 1px 4px rgba(0,0,0,0.8);
-}
-
-.online-count {
-  margin-left: auto;
-  background: rgba(0,0,0,0.55);
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.8rem;
-}
-
-/* Ranking board */
-#ranking-board {
-  position: absolute;
-  top: 50px;
-  right: 10px;
-  width: 160px;
-  background: rgba(20, 12, 5, 0.82);
-  border: 1px solid rgba(201, 162, 39, 0.5);
-  border-radius: 12px;
-  padding: 10px;
-  z-index: 10;
-  font-size: 0.78rem;
-}
-
-.rank-title {
-  text-align: center;
-  color: #ffd700;
-  font-weight: 700;
-  font-size: 0.72rem;
-  letter-spacing: 0.5px;
-  margin-bottom: 8px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid rgba(201, 162, 39, 0.3);
-}
-
-#rank-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.rank-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.rank-num {
-  width: 16px;
-  color: #c9a227;
-  font-weight: 700;
-}
-
-.rank-item.top1 .rank-num { color: #ffd700; }
-.rank-item.top2 .rank-num { color: #c0c0c0; }
-.rank-item.top3 .rank-num { color: #cd7f32; }
-
-.rank-name {
-  flex: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.rank-coins {
-  color: #e8c547;
-  font-weight: 600;
-}
+/* Ranking */
+#ranking-board{position:absolute;top:48px;right:10px;width:155px;background:rgba(15,8,3,.88);border:1px solid rgba(201,162,39,.55);border-radius:12px;padding:10px;z-index:10;font-size:.76rem}
+.rank-title{text-align:center;color:#ffd700;font-weight:700;font-size:.7rem;letter-spacing:.6px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(201,162,39,.3)}
+#rank-list{display:flex;flex-direction:column;gap:4px}
+.rank-item{display:flex;align-items:center;gap:5px}
+.rank-num{width:15px;color:#c9a227;font-weight:700}
+.rank-item.top1 .rank-num{color:#ffd700}
+.rank-item.top2 .rank-num{color:#c0c0c0}
+.rank-item.top3 .rank-num{color:#cd7f32}
+.rank-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rank-coins{color:#e8c547;font-weight:600}
 
 /* Donation effect */
-#donation-effect {
-  position: absolute;
-  top: 30%;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 20;
-  pointer-events: none;
-  text-align: center;
-  animation: donatePop 2.5s ease forwards;
-}
-
-#donation-effect .emoji {
-  font-size: 3.5rem;
-  display: block;
-  margin-bottom: 6px;
-}
-
-#donation-effect .text {
-  background: rgba(0,0,0,0.7);
-  padding: 8px 18px;
-  border-radius: 20px;
-  border: 1px solid #ffd700;
-  color: #ffd700;
-  font-weight: 600;
-  font-size: 1rem;
-  white-space: nowrap;
-}
-
-@keyframes donatePop {
-  0% { opacity: 0; transform: translateX(-50%) translateY(30px) scale(0.6); }
-  15% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1.1); }
-  30% { transform: translateX(-50%) translateY(0) scale(1); }
-  80% { opacity: 1; }
-  100% { opacity: 0; transform: translateX(-50%) translateY(-40px); }
-}
+#donation-effect{position:absolute;top:28%;left:50%;transform:translateX(-50%);z-index:25;pointer-events:none;text-align:center;animation:donatePop 2.8s ease forwards}
+#donation-effect .emoji{font-size:3.8rem;display:block;margin-bottom:6px;filter:drop-shadow(0 0 12px rgba(255,215,0,.6))}
+#donation-effect .text{background:rgba(0,0,0,.75);padding:8px 20px;border-radius:22px;border:1px solid #ffd700;color:#ffd700;font-weight:600;font-size:1.05rem;white-space:nowrap}
+@keyframes donatePop{0%{opacity:0;transform:translateX(-50%) translateY(40px) scale(.5)}12%{opacity:1;transform:translateX(-50%) translateY(0) scale(1.15)}25%{transform:translateX(-50%) translateY(0) scale(1)}75%{opacity:1}100%{opacity:0;transform:translateX(-50%) translateY(-50px)}}
 
 /* Chat */
-#chat-box {
-  position: absolute;
-  left: 10px;
-  bottom: 130px;
-  width: min(300px, 82vw);
-  max-height: 38vh;
-  display: flex;
-  flex-direction: column;
-  z-index: 10;
-}
+#chat-box{position:absolute;left:10px;bottom:128px;width:min(290px,80vw);max-height:36vh;display:flex;flex-direction:column;z-index:10}
+#messages{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:4px;padding:6px 0;mask-image:linear-gradient(to bottom,transparent,black 14%);-webkit-mask-image:linear-gradient(to bottom,transparent,black 14%)}
+.msg{background:rgba(0,0,0,.55);padding:5px 9px;border-radius:8px;font-size:.8rem;line-height:1.35;word-break:break-word;animation:fadeIn .25s ease}
+.msg.special{background:rgba(201,162,39,.32);border:1px solid rgba(255,215,0,.35)}
+.msg .name{font-weight:600;margin-right:4px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.chat-input-row{display:flex;gap:6px;margin-top:6px}
+#chat-input{flex:1;padding:9px 12px;border:1px solid rgba(255,255,255,.2);border-radius:20px;background:rgba(0,0,0,.6);color:#fff;font-size:.86rem;outline:none}
+#chat-input:focus{border-color:#c9a227}
+#send-btn{padding:8px 13px;background:#c9a227;border:none;border-radius:20px;color:#1a1208;font-weight:600;cursor:pointer}
 
-#messages {
-  flex: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  padding: 6px 0;
-  mask-image: linear-gradient(to bottom, transparent, black 12%);
-  -webkit-mask-image: linear-gradient(to bottom, transparent, black 12%);
-}
-
-.msg {
-  background: rgba(0,0,0,0.55);
-  padding: 5px 10px;
-  border-radius: 8px;
-  font-size: 0.82rem;
-  line-height: 1.35;
-  word-break: break-word;
-  animation: fadeIn 0.25s ease;
-}
-
-.msg.special {
-  background: rgba(201, 162, 39, 0.32);
-  border: 1px solid rgba(255, 215, 0, 0.35);
-}
-
-.msg .name {
-  font-weight: 600;
-  margin-right: 4px;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.chat-input-row {
-  display: flex;
-  gap: 6px;
-  margin-top: 6px;
-}
-
-#chat-input {
-  flex: 1;
-  padding: 9px 12px;
-  border: 1px solid rgba(255,255,255,0.2);
-  border-radius: 20px;
-  background: rgba(0,0,0,0.6);
-  color: #fff;
-  font-size: 0.88rem;
-  outline: none;
-}
-
-#chat-input:focus {
-  border-color: #c9a227;
-}
-
-#send-btn {
-  padding: 8px 14px;
-  background: #c9a227;
-  border: none;
-  border-radius: 20px;
-  color: #1a1208;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-/* Pray buttons */
-.pray-buttons {
-  position: absolute;
-  right: 10px;
-  bottom: 140px;
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-  z-index: 10;
-}
-
-.pray-buttons button {
-  padding: 7px 11px;
-  background: rgba(30, 20, 8, 0.85);
-  border: 1px solid #c9a227;
-  border-radius: 18px;
-  color: #ffd700;
-  font-size: 0.78rem;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background 0.15s;
-}
-
-.pray-buttons button:active {
-  background: rgba(201, 162, 39, 0.5);
-}
+/* Pray */
+.pray-buttons{position:absolute;right:10px;bottom:138px;display:flex;flex-direction:column;gap:6px;z-index:10}
+.pray-buttons button{padding:7px 11px;background:rgba(25,15,6,.88);border:1px solid #c9a227;border-radius:18px;color:#ffd700;font-size:.76rem;cursor:pointer;white-space:nowrap}
+.pray-buttons button:active{background:rgba(201,162,39,.5)}
 
 /* Donate bar */
-.donate-bar {
-  position: absolute;
-  bottom: 48px;
-  left: 0;
-  right: 0;
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  padding: 0 10px;
-  z-index: 10;
-}
+.donate-bar{position:absolute;bottom:46px;left:0;right:0;display:flex;justify-content:center;gap:9px;padding:0 8px;z-index:10}
+.donate-btn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 13px;background:rgba(18,10,4,.9);border:1px solid #c9a227;border-radius:12px;color:#ffd700;cursor:pointer;min-width:88px;transition:transform .12s}
+.donate-btn:active{transform:scale(.94);background:rgba(201,162,39,.4)}
+.donate-btn.premium{border-color:#ff6b8a;background:rgba(45,12,28,.92)}
+.donate-btn .coin{font-weight:700;font-size:.95rem;color:#ffe066}
+.donate-btn .label{font-size:.7rem;opacity:.95}
 
-.donate-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  padding: 8px 14px;
-  background: rgba(20, 12, 5, 0.88);
-  border: 1px solid #c9a227;
-  border-radius: 12px;
-  color: #ffd700;
-  cursor: pointer;
-  min-width: 90px;
-  transition: transform 0.15s, background 0.15s;
-}
+/* Bottom */
+.bottom-bar{position:absolute;bottom:0;left:0;right:0;padding:7px 14px;background:linear-gradient(to top,rgba(0,0,0,.82),transparent);display:flex;justify-content:space-between;align-items:center;z-index:10;font-size:.84rem}
+.heart{color:#ff6b8a}
 
-.donate-btn:active {
-  transform: scale(0.95);
-  background: rgba(201, 162, 39, 0.4);
-}
-
-.donate-btn.premium {
-  border-color: #ff6b8a;
-  background: rgba(40, 15, 25, 0.9);
-}
-
-.donate-btn .coin {
-  font-weight: 700;
-  font-size: 0.95rem;
-  color: #ffe066;
-}
-
-.donate-btn .label {
-  font-size: 0.72rem;
-  opacity: 0.95;
-}
-
-/* Bottom bar */
-.bottom-bar {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 8px 16px;
-  background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  z-index: 10;
-  font-size: 0.85rem;
-}
-
-.heart {
-  color: #ff6b8a;
-}
-
-/* Mobile */
-@media (max-width: 480px) {
-  #ranking-board {
-    width: 130px;
-    font-size: 0.7rem;
-    top: 48px;
-  }
-  .pray-buttons {
-    bottom: 145px;
-  }
-  #chat-box {
-    bottom: 135px;
-    max-height: 32vh;
-  }
-  .donate-btn {
-    min-width: 78px;
-    padding: 7px 10px;
-  }
-}
+@media(max-width:480px){#ranking-board{width:128px;font-size:.68rem;top:46px}.pray-buttons{bottom:142px}#chat-box{bottom:132px;max-height:30vh}.donate-btn{min-width:76px;padding:7px 9px}}

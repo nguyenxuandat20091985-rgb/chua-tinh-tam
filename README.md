@@ -1,27 +1,19 @@
 # Chùa Tịnh Tâm 🙏
 
-**Phiên đi chùa online đa người dùng** — mô phỏng trải nghiệm live TikTok chùa.
+Phiên đi chùa online đa người dùng — mô phỏng live TikTok chùa.
 
 ## Tính năng
 
-### Cơ bản
-- Không gian chánh điện **3D** (Three.js) với tượng Phật vàng, hào quang, lò hương khói bay
-- **Đa người dùng realtime** (Socket.io)
-- Chat live kiểu TikTok
-- Nút cầu nguyện nhanh (Nam Mô, Cầu an, Cầu lộc, Sức khỏe)
-- Badge LIVE + đếm số người online
+- Không gian chánh điện **3D** đẹp hơn (tượng Phật, hào quang, khói hương, đèn vàng)
+- **Hàng trăm avatar** quỳ hai bên thảm đỏ (dense crowd)
+- Tên người dùng **bay** kiểu TikTok
+- Chat live + nút cầu nguyện
+- **Hệ thống cúng dường**: Hương trầm (1) – Sen nhỏ (5) – Sen vàng (10+)
+- Bảng xếp hạng **TẤM LÒNG THÀNH** realtime
+- Vai trò Host
+- Badge LIVE + số người online
 
-### Mới nâng cấp
-- **Hệ thống Cúng dường**
-  - 1 Coin → Đăng hương
-  - 2 Coins → Lễ Phật
-  - 10+ Coins → Hoa sen
-  - Hiệu ứng bay lên khi cúng
-- **Bảng xếp hạng “TẤM LÒNG THÀNH”** (realtime)
-- **Vai trò Host** (người đầu tiên vào làm chủ trì)
-- Avatar áo lam + tóc búi
-
-## Cách chạy
+## Chạy
 
 ```bash
 git clone https://github.com/nguyenxuandat20091985-rgb/chua-tinh-tam.git
@@ -30,12 +22,7 @@ npm install
 npm start
 ```
 
-Mở `http://localhost:3000`  
-Mở nhiều tab / điện thoại để thấy realtime multi-user.
-
-## Công nghệ
-- Backend: Node.js + Express + Socket.io
-- Frontend: Three.js + vanilla JS + CSS
+Mở http://localhost:3000
 
 ## Repo
 https://github.com/nguyenxuandat20091985-rgb/chua-tinh-tam
