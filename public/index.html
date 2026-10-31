@@ -12,11 +12,12 @@
   <!-- Join screen -->
   <div id="join-screen">
     <div class="join-box">
-      <h1>🙏 Chùa Tịnh Tâm</h1>
+      <div class="lotus">🌺</div>
+      <h1>Chùa Tịnh Tâm</h1>
       <p>Phiên đi chùa online đa người dùng</p>
       <input type="text" id="name-input" placeholder="Tên của bạn (Phật tử)..." maxlength="20" autocomplete="off" />
       <button id="join-btn">Vào chùa</button>
-      <p class="hint">Nam Mô A Di Đà Phật</p>
+      <p class="hint">Nam Mô A Di Đà Phật 🙏</p>
     </div>
   </div>
 
@@ -30,6 +31,15 @@
       <div class="temple-name">Chùa Tịnh Tâm</div>
       <div class="online-count" id="online-count">0 người</div>
     </div>
+
+    <!-- Ranking board -->
+    <div id="ranking-board">
+      <div class="rank-title">TẤM LÒNG THÀNH</div>
+      <div id="rank-list"></div>
+    </div>
+
+    <!-- Donation effect overlay -->
+    <div id="donation-effect" class="hidden"></div>
 
     <!-- Chat -->
     <div id="chat-box">
@@ -46,7 +56,22 @@
       <button data-pray="an">Cầu an</button>
       <button data-pray="loc">Cầu lộc</button>
       <button data-pray="suc">Sức khỏe</button>
-      <button data-pray="hoa">Cúng hoa 🌺</button>
+    </div>
+
+    <!-- Donation bar (bottom) -->
+    <div class="donate-bar">
+      <button class="donate-btn" data-donate="huong">
+        <span class="coin">1</span>
+        <span class="label">🕯️ Đăng hương</span>
+      </button>
+      <button class="donate-btn" data-donate="lephat">
+        <span class="coin">2</span>
+        <span class="label">🙏 Lễ Phật</span>
+      </button>
+      <button class="donate-btn premium" data-donate="hoasen">
+        <span class="coin">10+</span>
+        <span class="label">🌺 Hoa sen</span>
+      </button>
     </div>
 
     <!-- Bottom info -->
