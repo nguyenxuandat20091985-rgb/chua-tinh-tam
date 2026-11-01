@@ -19,20 +19,25 @@ import {
   subscribe,
 } from '../lib/store';
 import { speak } from '../lib/tts';
+import { getSocket, connectTikTok, disconnectTikTok } from '../lib/tiktokSocket';
 
 interface Props {
   onRitual?: (ritual: RitualId, label: string) => void;
 }
 
 export function ControlPanel({ onRitual }: Props) {
-  const [username, setUsername] = useState('Phật tử');
+  const [username, setUsername] = useState('lonelyking011');
+  const [tiktokUser, setTiktokUser] = useState('lonelyking011');
+  const [liveStatus, setLiveStatus] = useState<'idle' | 'connecting' | 'connected' | 'disconnected' | 'ended'>('idle');
+  const [liveError, setLiveError] = useState('');
   const [comment, setComment] = useState('');
   const [giftXu, setGiftXu] = useState(1);
   const [ranking, setRanking] = useState(getTopRanking());
   const [logs, setLogs] = useState(getLogs());
   const [stats, setStats] = useState(getStats());
   const [ttsOn, setTtsOn] = useState(true);
-  const [lastRitual, setLastRitual] = useState<string>('');
+  const [lastRitual, setLastRitual] = useState('');
+  const [liveChat, setLiveChat] = useState<{ name: string; text: string }[]>([]);
 
   useEffect(() => {
     return subscribe(() => {
@@ -56,18 +61,87 @@ export function ControlPanel({ onRitual }: Props) {
       setLastRitual(RITUAL_LABELS[result.ritual]);
       onRitual?.(result.ritual, RITUAL_LABELS[result.ritual]);
       if (ttsOn) {
-        const msg =
-          result.ritual === 'tha_den'
-            ? `${user} cầu nguyện. ${result.detail.slice(0, 80)}`
-            : `${user}. ${RITUAL_LABELS[result.ritual]}. Cộng ${result.merit} công đức.`;
-        speak(msg);
+        speak(`${user}. ${RITUAL_LABELS[result.ritual]}. Cộng ${result.merit} công đức.`);
       }
     },
     [onRitual, ttsOn]
   );
 
+  // —— TikTok Live socket listeners ——
+  useEffect(() => {
+    const s = getSocket();
+
+    const onStatus = (data: { status: string; uniqueId?: string }) => {
+      setLiveStatus(data.status as typeof liveStatus);
+      if (data.status === 'connected') setLiveError('');
+    };
+    const onError = (data: { message: string }) => {
+      setLiveError(data.message || 'Lỗi kết nối');
+      setLiveStatus('disconnected');
+    };
+    const onChat = (data: { nickname: string; comment: string }) => {
+      setLiveChat((prev) => [{ name: data.nickname, text: data.comment }, ...prev].slice(0, 30));
+      const result = processComment(data.comment);
+      if (result) {
+        applyResult(data.nickname, `Live: ${data.comment.slice(0, 40)}`, result);
+      }
+    };
+    const onGift = (data: {
+      nickname: string;
+      giftName: string;
+      totalXu: number;
+    }) => {
+      const result = processGift(data.totalXu || 1);
+      applyResult(
+        data.nickname,
+        `Quà Live: ${data.giftName} (~${data.totalXu} xu)`,
+        result
+      );
+    };
+    const onLike = (data: { nickname: string; likeCount: number }) => {
+      const n = Math.min(data.likeCount || 1, 20);
+      for (let i = 0; i < n; i++) {
+        applyResult(data.nickname, 'Thả tim Live', processLike());
+      }
+    };
+    const onSocial = (data: { nickname: string; action: string }) => {
+      applyResult(
+        data.nickname,
+        data.action === 'follow' ? 'Follow Live' : 'Share Live',
+        processFollowOrShare()
+      );
+    };
+
+    s.on('tiktok:status', onStatus);
+    s.on('tiktok:error', onError);
+    s.on('tiktok:chat', onChat);
+    s.on('tiktok:gift', onGift);
+    s.on('tiktok:like', onLike);
+    s.on('tiktok:social', onSocial);
+
+    return () => {
+      s.off('tiktok:status', onStatus);
+      s.off('tiktok:error', onError);
+      s.off('tiktok:chat', onChat);
+      s.off('tiktok:gift', onGift);
+      s.off('tiktok:like', onLike);
+      s.off('tiktok:social', onSocial);
+    };
+  }, [applyResult]);
+
+  const handleConnectLive = () => {
+    setLiveError('');
+    connectTikTok(tiktokUser.trim() || 'lonelyking011');
+  };
+
+  const handleDisconnectLive = () => {
+    disconnectTikTok();
+    setLiveStatus('disconnected');
+  };
+
   const handleLike = () => applyResult(username || 'Phật tử', 'Thả tim', processLike());
-  const handleFollow = () => applyResult(username || 'Phật tử', 'Follow/Share', processFollowOrShare());
+  const handleFollow = () =>
+    applyResult(username || 'Phật tử', 'Follow/Share', processFollowOrShare());
 
   const handleComment = () => {
     const text = comment.trim();
@@ -92,7 +166,12 @@ export function ControlPanel({ onRitual }: Props) {
     applyResult(username || 'Phật tử', `Tặng quà ${giftXu} xu`, result);
   };
 
-  const triggerRitual = (ritual: RitualId, label: string, merit: number, detail: string) => {
+  const triggerRitual = (
+    ritual: RitualId,
+    label: string,
+    merit: number,
+    detail: string
+  ) => {
     applyResult(username || 'Admin', `Lệnh RPC: ${label}`, {
       ritual,
       merit,
@@ -101,45 +180,91 @@ export function ControlPanel({ onRitual }: Props) {
     });
   };
 
+  const statusColor =
+    liveStatus === 'connected'
+      ? '#86efac'
+      : liveStatus === 'connecting'
+        ? '#fde047'
+        : liveStatus === 'ended'
+          ? '#fca5a5'
+          : '#a89060';
+
   return (
     <div className="panel">
       <div className="panel-header">
         <h2>Bảng Điều Khiển Chùa Tịnh Tâm</h2>
         <div className="stats">
-          Hương đã thắp: <strong>{stats.incenseCount}</strong> | Tổng Công Đức:{' '}
+          Hương: <strong>{stats.incenseCount}</strong> | Công Đức:{' '}
           <strong>{stats.totalMerit}</strong>
         </div>
       </div>
 
+      {/* TikTok Live thật */}
+      <section className="card" style={{ marginBottom: 14 }}>
+        <h3>Kết nối TikTok Live thật</h3>
+        <p className="hint">
+          Tài khoản phải <strong>đang LIVE</strong>. Mặc định: @lonelyking011
+        </p>
+        <div className="row gap">
+          <input
+            value={tiktokUser}
+            onChange={(e) => setTiktokUser(e.target.value)}
+            placeholder="lonelyking011"
+            style={{ flex: 1 }}
+          />
+          <button type="button" className="btn gold" onClick={handleConnectLive}>
+            Kết Nối Live
+          </button>
+          <button type="button" className="btn dark" onClick={handleDisconnectLive}>
+            Ngắt
+          </button>
+        </div>
+        <div style={{ marginTop: 8, fontSize: '0.85rem', color: statusColor }}>
+          Trạng thái: <strong>{liveStatus}</strong>
+          {liveError && <span style={{ color: '#f87171' }}> — {liveError}</span>}
+        </div>
+        {liveChat.length > 0 && (
+          <div className="live-chat">
+            {liveChat.slice(0, 8).map((c, i) => (
+              <div key={i}>
+                <strong style={{ color: '#ffd700' }}>{c.name}</strong>: {c.text}
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
       <div className="grid-2">
-        {/* 1. User + TTS */}
         <section className="card">
-          <h3>1. Người dùng & Giọng đọc</h3>
+          <h3>1. Người dùng & TTS (giả lập)</h3>
           <input
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            placeholder="Tên Phật tử / @username"
+            placeholder="Tên test"
           />
-          <div className="row">
-            <label className="check">
-              <input type="checkbox" checked={ttsOn} onChange={(e) => setTtsOn(e.target.checked)} />
-              Bật giọng đọc (TTS)
-            </label>
-          </div>
+          <label className="check">
+            <input
+              type="checkbox"
+              checked={ttsOn}
+              onChange={(e) => setTtsOn(e.target.checked)}
+            />
+            Bật giọng đọc (TTS)
+          </label>
           {lastRitual && (
-            <div className="last-ritual">Nghi thức vừa rồi: <strong>{lastRitual}</strong></div>
+            <div className="last-ritual">
+              Nghi thức: <strong>{lastRitual}</strong>
+            </div>
           )}
         </section>
 
-        {/* 2. Sự kiện TikTok */}
         <section className="card">
-          <h3>2. Sự kiện TikTok Live</h3>
+          <h3>2. Giả lập sự kiện</h3>
           <div className="btn-row">
             <button type="button" className="btn gold" onClick={handleLike}>
-              ❤️ Thả tim (+1)
+              ❤️ Tim (+1)
             </button>
             <button type="button" className="btn gold" onClick={handleFollow}>
-              ➕ Follow / Share (+10)
+              ➕ Follow (+10)
             </button>
           </div>
           <div className="row gap">
@@ -148,68 +273,94 @@ export function ControlPanel({ onRitual }: Props) {
               min={1}
               value={giftXu}
               onChange={(e) => setGiftXu(Number(e.target.value) || 1)}
-              style={{ width: 80 }}
+              style={{ width: 70 }}
             />
             <span>xu</span>
             <button type="button" className="btn red" onClick={handleGift}>
-              🎁 Tặng quà
+              🎁 Quà
             </button>
           </div>
         </section>
 
-        {/* 3. Giả lập bình luận */}
         <section className="card">
-          <h3>3. Giả lập Bình luận (từ khóa)</h3>
-          <p className="hint">
-            Từ khóa: thắp hương, cầu nguyện, nam mô, xin xăm, gieo quẻ, thỉnh chuông, gõ mõ…
-          </p>
+          <h3>3. Giả lập Comment</h3>
+          <p className="hint">thắp hương, cầu an, nam mô, xin xăm…</p>
           <div className="row gap">
             <input
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleComment()}
-              placeholder="Con xin thắp hương / cầu an…"
+              placeholder="Con xin thắp hương…"
               style={{ flex: 1 }}
             />
             <button type="button" className="btn gold" onClick={handleComment}>
-              Gửi Comment
+              Gửi
             </button>
           </div>
         </section>
 
-        {/* 4. Lệnh nghi thức RPC */}
         <section className="card">
-          <h3>4. Lệnh Nghi thức (RPC)</h3>
+          <h3>4. Lệnh Nghi thức RPC</h3>
           <div className="ritual-grid">
-            <button type="button" className="btn gold" onClick={() => triggerRitual('thap_huong', 'Thắp 3 Nén Hương', 15, 'Thắp hương trước Lư')}>
-              🔥 Thắp 3 Nén Hương
+            <button
+              type="button"
+              className="btn gold"
+              onClick={() =>
+                triggerRitual('thap_huong', 'Thắp 3 Nén Hương', 15, 'Thắp hương')
+              }
+            >
+              🔥 Thắp Hương
             </button>
-            <button type="button" className="btn red" onClick={() => triggerRitual('tha_den', 'Thả Đèn Hoa Đăng', 10, 'Thả đèn cầu nguyện')}>
-              🏮 Thả Đèn Hoa Đăng
+            <button
+              type="button"
+              className="btn red"
+              onClick={() =>
+                triggerRitual('tha_den', 'Thả Đèn Hoa Đăng', 10, 'Thả đèn')
+              }
+            >
+              🏮 Thả Đèn
             </button>
-            <button type="button" className="btn dark" onClick={() => triggerRitual('go_mo', 'Gõ Mõ 9 Nhịp', 5, 'Gõ mõ tụng kinh')}>
+            <button
+              type="button"
+              className="btn dark"
+              onClick={() => triggerRitual('go_mo', 'Gõ Mõ', 5, 'Gõ mõ')}
+            >
               🥁 Gõ Mõ
             </button>
-            <button type="button" className="btn dark" onClick={() => triggerRitual('thinh_chuong', 'Thỉnh Đại Hồng Chung', 10, 'Chuông ngân')}>
+            <button
+              type="button"
+              className="btn dark"
+              onClick={() =>
+                triggerRitual('thinh_chuong', 'Thỉnh Chuông', 10, 'Chuông')
+              }
+            >
               🔔 Thỉnh Chuông
             </button>
-            <button type="button" className="btn dark" onClick={() => triggerRitual('xin_xam', 'Xin Xăm / Gieo Quẻ', 10, 'Lắc ống xăm')}>
-              📜 Xin Xăm / Gieo Quẻ
+            <button
+              type="button"
+              className="btn dark"
+              onClick={() =>
+                triggerRitual('xin_xam', 'Xin Xăm', 10, 'Gieo quẻ')
+              }
+            >
+              📜 Xin Xăm
             </button>
-            <button type="button" className="btn dark" onClick={() => triggerRitual('dang_mam', 'Dâng Mâm Ngũ Quả', 30, 'Dâng mâm')}>
-              🍎 Dâng Mâm Ngũ Quả
-            </button>
-            <button type="button" className="btn gold" onClick={() => triggerRitual('dai_le_kim_long', 'Đại Lễ Kim Long', 50, 'Mưa hoa sen vàng')}>
-              🐉 Đại Lễ Kim Long
+            <button
+              type="button"
+              className="btn gold"
+              onClick={() =>
+                triggerRitual('dai_le_kim_long', 'Đại Lễ Kim Long', 50, 'Mưa hoa sen')
+              }
+            >
+              🐉 Đại Lễ
             </button>
             <button type="button" className="btn danger" onClick={() => resetMerit()}>
-              ♻️ Đặt lại Công Đức
+              ♻️ Reset Công Đức
             </button>
           </div>
         </section>
       </div>
 
-      {/* Ranking + Log */}
       <div className="grid-2" style={{ marginTop: 16 }}>
         <section className="card">
           <h3>TẤM LÒNG THÀNH</h3>
@@ -225,10 +376,10 @@ export function ControlPanel({ onRitual }: Props) {
           </ol>
         </section>
         <section className="card">
-          <h3>Nhật ký Nghi thức</h3>
+          <h3>Nhật ký</h3>
           <div className="log-box">
             {logs.length === 0 && <div className="muted">Chưa có sự kiện</div>}
-            {logs.slice(0, 12).map((l) => (
+            {logs.slice(0, 15).map((l) => (
               <div key={l.id} className="log-item">
                 <span className="log-user">{l.user}</span>
                 <span className="log-event">{l.event}</span>
@@ -242,9 +393,8 @@ export function ControlPanel({ onRitual }: Props) {
 
       <style>{`
         .panel { color: #f5e6c8; }
-        .panel-header { margin-bottom: 16px; }
         .panel-header h2 { color: #ffd700; font-size: 1.15rem; margin-bottom: 6px; }
-        .stats { font-size: 0.85rem; color: #c9a227; }
+        .stats { font-size: 0.85rem; color: #c9a227; margin-bottom: 12px; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
         @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
         .card {
@@ -254,7 +404,7 @@ export function ControlPanel({ onRitual }: Props) {
           padding: 14px;
         }
         .card h3 { font-size: 0.9rem; color: #e8c547; margin-bottom: 10px; }
-        input[type="text"], input[type="number"], input:not([type]) {
+        input {
           width: 100%;
           padding: 10px 12px;
           border-radius: 8px;
@@ -263,7 +413,7 @@ export function ControlPanel({ onRitual }: Props) {
           color: #fff;
           margin-bottom: 8px;
         }
-        .row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .row { display: flex; align-items: center; flex-wrap: wrap; }
         .gap { gap: 8px; }
         .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
         .btn {
@@ -283,6 +433,15 @@ export function ControlPanel({ onRitual }: Props) {
         .hint { font-size: 0.75rem; color: #a89060; margin-bottom: 8px; }
         .check { font-size: 0.85rem; display: flex; align-items: center; gap: 6px; }
         .last-ritual { margin-top: 8px; font-size: 0.85rem; color: #86efac; }
+        .live-chat {
+          margin-top: 10px;
+          max-height: 120px;
+          overflow-y: auto;
+          font-size: 0.78rem;
+          background: #0d0805;
+          padding: 8px;
+          border-radius: 8px;
+        }
         .rank-list { list-style: none; font-size: 0.85rem; }
         .rank-list li { display: flex; gap: 8px; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
         .rank-num { width: 20px; color: #c9a227; font-weight: 700; }
@@ -291,10 +450,9 @@ export function ControlPanel({ onRitual }: Props) {
         .log-box { max-height: 220px; overflow-y: auto; font-size: 0.78rem; }
         .log-item { padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
         .log-user { color: #ffd700; font-weight: 600; margin-right: 6px; }
-        .log-event { color: #ddd; }
         .log-merit { color: #86efac; margin-left: 6px; }
-        .log-ritual { color: #a89060; font-size: 0.72rem; margin-top: 2px; }
-        .muted { color: #666; font-size: 0.85rem; }
+        .log-ritual { color: #a89060; font-size: 0.72rem; }
+        .muted { color: #666; }
       `}</style>
     </div>
   );
