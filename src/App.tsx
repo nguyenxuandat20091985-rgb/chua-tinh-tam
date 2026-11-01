@@ -1,88 +1,127 @@
 import { useState } from 'react';
+import { ControlPanel } from './components/ControlPanel';
+import { TempleView } from './components/TempleView';
 import { VirtualTour360 } from './components/VirtualTour360';
+import type { RitualId } from './lib/rules';
 
-/**
- * Demo page – Chùa Tịnh Tâm Tour 360°
- * Dùng ảnh panorama mẫu (equirectangular) để xem ngay.
- * Anh có thể đổi panoramaUrl thành link video/ảnh 360 của chùa.
- */
+const DEMO_PANO =
+  'https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Equirectangular_projection_SW.jpg/1280px-Equirectangular_projection_SW.jpg';
+
 export default function App() {
-  const [showTour, setShowTour] = useState(true);
-
-  // Ảnh panorama mẫu (equirectangular) – có thể thay bằng link của anh
-  const DEMO_PANO =
-    'https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Equirectangular_projection_SW.jpg/1280px-Equirectangular_projection_SW.jpg';
+  const [tab, setTab] = useState<'live' | 'tour360'>('live');
+  const [activeRitual, setActiveRitual] = useState<RitualId | null>(null);
+  const [ritualLabel, setRitualLabel] = useState('');
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(160deg, #1a1208 0%, #0f0a05 100%)' }}>
-      {/* Header */}
-      <header
-        style={{
-          padding: '16px 20px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          borderBottom: '1px solid rgba(201,162,39,0.3)',
-        }}
-      >
+    <div className="app">
+      <header className="header">
         <div>
-          <h1 style={{ fontSize: '1.25rem', color: '#ffd700', margin: 0 }}>
-            🙏 Chùa Tịnh Tâm
-          </h1>
-          <p style={{ fontSize: '0.8rem', color: '#a89060', margin: '4px 0 0' }}>
-            Tour 360° – VirtualTour360
-          </p>
+          <h1>🙏 Chùa Tịnh Tâm</h1>
+          <p>Hệ thống Live · Quy tắc tương tác · Công đức · Tour 360°</p>
         </div>
-        <button
-          onClick={() => setShowTour((v) => !v)}
-          style={{
-            padding: '8px 16px',
-            background: 'linear-gradient(135deg, #c9a227, #e8c547)',
-            border: 'none',
-            borderRadius: 8,
-            color: '#1a1208',
-            fontWeight: 600,
-            cursor: 'pointer',
-          }}
-        >
-          {showTour ? 'Ẩn Tour' : 'Xem Tour 360°'}
-        </button>
+        <nav className="tabs">
+          <button
+            type="button"
+            className={tab === 'live' ? 'active' : ''}
+            onClick={() => setTab('live')}
+          >
+            Live & Điều khiển
+          </button>
+          <button
+            type="button"
+            className={tab === 'tour360' ? 'active' : ''}
+            onClick={() => setTab('tour360')}
+          >
+            Tour 360°
+          </button>
+        </nav>
       </header>
 
-      {/* Main */}
-      <main style={{ padding: '16px', maxWidth: 960, margin: '0 auto' }}>
-        {showTour ? (
-          <VirtualTour360
-            panoramaUrl={DEMO_PANO}
-            title="Chánh điện Chùa Tịnh Tâm"
-            description="Kéo hoặc vuốt để nhìn quanh không gian 360°. Thay panoramaUrl bằng ảnh/video 360 của chùa."
-            onClose={() => setShowTour(false)}
-          />
-        ) : (
-          <div
-            style={{
-              height: '50vh',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              border: '1px dashed rgba(201,162,39,0.4)',
-              borderRadius: 12,
-              color: '#a89060',
-            }}
-          >
-            Nhấn "Xem Tour 360°" để mở trải nghiệm
-          </div>
+      <main className="main">
+        {tab === 'live' && (
+          <>
+            <TempleView activeRitual={activeRitual} ritualLabel={ritualLabel} />
+            <div style={{ marginTop: 20 }}>
+              <ControlPanel
+                onRitual={(ritual, label) => {
+                  setActiveRitual(ritual);
+                  setRitualLabel(label);
+                }}
+              />
+            </div>
+          </>
         )}
 
-        <section style={{ marginTop: 24, padding: 16, background: 'rgba(40,25,10,0.6)', borderRadius: 12 }}>
-          <h2 style={{ color: '#ffd700', fontSize: '1rem', marginBottom: 8 }}>Hướng dẫn</h2>
-          <ul style={{ color: '#e8d5a3', fontSize: '0.9rem', lineHeight: 1.7, paddingLeft: 18 }}>
-            <li>Kéo chuột (hoặc vuốt điện thoại) để xoay góc nhìn 360°</li>
-            <li>Dùng thanh điều khiển phía dưới: Phát / Tắt tiếng / Reset / Toàn màn hình</li>
-            <li>Thay <code style={{ color: '#ffd700' }}>panoramaUrl</code> trong <code>App.tsx</code> bằng link ảnh hoặc video 360° của chùa</li>
-          </ul>
-        </section>
+        {tab === 'tour360' && (
+          <VirtualTour360
+            panoramaUrl={DEMO_PANO}
+            title="Chánh điện Chùa Tịnh Tâm – 360°"
+            description="Kéo / vuốt để nhìn quanh. Thay panoramaUrl bằng ảnh hoặc video 360 của chùa."
+          />
+        )}
       </main>
+
+      <footer className="footer">
+        Chùa Tịnh Tâm · Bảng quy tắc TikTok Live · Công đức realtime
+      </footer>
+
+      <style>{`
+        .app {
+          min-height: 100vh;
+          background: linear-gradient(165deg, #1a1208 0%, #0f0a05 45%, #0a0806 100%);
+          color: #f5e6c8;
+        }
+        .header {
+          padding: 16px 20px;
+          border-bottom: 1px solid rgba(201, 162, 39, 0.3);
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+        }
+        .header h1 {
+          font-size: 1.35rem;
+          color: #ffd700;
+          margin: 0;
+        }
+        .header p {
+          font-size: 0.8rem;
+          color: #a89060;
+          margin: 4px 0 0;
+        }
+        .tabs {
+          display: flex;
+          gap: 8px;
+        }
+        .tabs button {
+          padding: 8px 14px;
+          border-radius: 8px;
+          border: 1px solid #5c4033;
+          background: #1a1008;
+          color: #c9a227;
+          cursor: pointer;
+          font-weight: 600;
+          font-size: 0.85rem;
+        }
+        .tabs button.active {
+          background: linear-gradient(135deg, #c9a227, #e8c547);
+          color: #1a1008;
+          border-color: transparent;
+        }
+        .main {
+          max-width: 1100px;
+          margin: 0 auto;
+          padding: 20px 16px 40px;
+        }
+        .footer {
+          text-align: center;
+          padding: 16px;
+          font-size: 0.75rem;
+          color: #6b5344;
+          border-top: 1px solid rgba(201, 162, 39, 0.15);
+        }
+      `}</style>
     </div>
   );
 }
