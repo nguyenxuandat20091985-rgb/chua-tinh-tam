@@ -14,22 +14,25 @@ export default function App() {
 
   return (
     <div className="app">
-      <header className="header">
-        <div>
-          <h1>🙏 Chùa Tịnh Tâm</h1>
-          <p>Hệ thống Live · Quy tắc tương tác · Công đức · Tour 360°</p>
+      <header className="topbar">
+        <div className="brand">
+          <span className="lotus">🪷</span>
+          <div>
+            <h1>Chùa Tịnh Tâm</h1>
+            <p>TikTok Live · Nghi thức · Công đức</p>
+          </div>
         </div>
         <nav className="tabs">
           <button
             type="button"
-            className={tab === 'live' ? 'active' : ''}
+            className={tab === 'live' ? 'on' : ''}
             onClick={() => setTab('live')}
           >
             Live & Điều khiển
           </button>
           <button
             type="button"
-            className={tab === 'tour360' ? 'active' : ''}
+            className={tab === 'tour360' ? 'on' : ''}
             onClick={() => setTab('tour360')}
           >
             Tour 360°
@@ -39,9 +42,11 @@ export default function App() {
 
       <main className="main">
         {tab === 'live' && (
-          <>
-            <TempleView activeRitual={activeRitual} ritualLabel={ritualLabel} />
-            <div style={{ marginTop: 20 }}>
+          <div className="live-layout">
+            <div className="col-temple">
+              <TempleView activeRitual={activeRitual} ritualLabel={ritualLabel} />
+            </div>
+            <div className="col-panel">
               <ControlPanel
                 onRitual={(ritual, label) => {
                   setActiveRitual(ritual);
@@ -49,78 +54,89 @@ export default function App() {
                 }}
               />
             </div>
-          </>
+          </div>
         )}
 
         {tab === 'tour360' && (
-          <VirtualTour360
-            panoramaUrl={DEMO_PANO}
-            title="Chánh điện Chùa Tịnh Tâm – 360°"
-            description="Kéo / vuốt để nhìn quanh. Thay panoramaUrl bằng ảnh hoặc video 360 của chùa."
-          />
+          <div className="tour-wrap">
+            <VirtualTour360
+              panoramaUrl={DEMO_PANO}
+              title="Chánh điện Chùa Tịnh Tâm – 360°"
+              description="Kéo / vuốt để nhìn quanh. Thay panoramaUrl bằng ảnh/video 360 của chùa."
+            />
+          </div>
         )}
       </main>
 
-      <footer className="footer">
-        Chùa Tịnh Tâm · Bảng quy tắc TikTok Live · Công đức realtime
-      </footer>
-
       <style>{`
+        * { box-sizing: border-box; }
         .app {
           min-height: 100vh;
-          background: linear-gradient(165deg, #1a1208 0%, #0f0a05 45%, #0a0806 100%);
+          background: #0c0806;
           color: #f5e6c8;
+          font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
         }
-        .header {
-          padding: 16px 20px;
-          border-bottom: 1px solid rgba(201, 162, 39, 0.3);
+        .topbar {
           display: flex;
           flex-wrap: wrap;
           align-items: center;
           justify-content: space-between;
           gap: 12px;
+          padding: 12px 18px;
+          background: linear-gradient(90deg, #1a120a, #120c08);
+          border-bottom: 1px solid rgba(201, 162, 39, 0.35);
         }
-        .header h1 {
-          font-size: 1.35rem;
-          color: #ffd700;
+        .brand { display: flex; align-items: center; gap: 10px; }
+        .lotus { font-size: 1.6rem; }
+        .brand h1 {
           margin: 0;
+          font-size: 1.2rem;
+          color: #ffd700;
+          letter-spacing: 0.02em;
         }
-        .header p {
-          font-size: 0.8rem;
+        .brand p {
+          margin: 2px 0 0;
+          font-size: 0.75rem;
           color: #a89060;
-          margin: 4px 0 0;
         }
-        .tabs {
-          display: flex;
-          gap: 8px;
-        }
+        .tabs { display: flex; gap: 8px; }
         .tabs button {
           padding: 8px 14px;
           border-radius: 8px;
           border: 1px solid #5c4033;
           background: #1a1008;
           color: #c9a227;
-          cursor: pointer;
           font-weight: 600;
-          font-size: 0.85rem;
+          font-size: 0.82rem;
+          cursor: pointer;
         }
-        .tabs button.active {
+        .tabs button.on {
           background: linear-gradient(135deg, #c9a227, #e8c547);
           color: #1a1008;
           border-color: transparent;
         }
         .main {
-          max-width: 1100px;
+          max-width: 1280px;
           margin: 0 auto;
-          padding: 20px 16px 40px;
+          padding: 14px 12px 28px;
         }
-        .footer {
-          text-align: center;
-          padding: 16px;
-          font-size: 0.75rem;
-          color: #6b5344;
-          border-top: 1px solid rgba(201, 162, 39, 0.15);
+        .live-layout {
+          display: grid;
+          grid-template-columns: minmax(280px, 1fr) minmax(300px, 380px);
+          gap: 14px;
+          align-items: start;
         }
+        @media (max-width: 900px) {
+          .live-layout { grid-template-columns: 1fr; }
+        }
+        .col-temple {
+          min-height: 520px;
+        }
+        .col-panel {
+          max-height: calc(100vh - 80px);
+          overflow-y: auto;
+        }
+        .tour-wrap { max-width: 960px; margin: 0 auto; }
       `}</style>
     </div>
   );
