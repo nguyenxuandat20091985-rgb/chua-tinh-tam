@@ -1,7 +1,7 @@
 /**
  * Chùa Tịnh Tâm – Server
  * - Serve Vite build (production) hoặc proxy dev
- * - Socket.io + TikTok Live Connector
+ * - Socket.io + TikTok LIVE event bridge (không phụ thuộc Euler signing)
  */
 import express from 'express';
 import { createServer } from 'http';
@@ -9,14 +9,12 @@ import { Server } from 'socket.io';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { WebcastPushConnection } from 'tiktok-live-connector/legacy';
+import { TikTokLiveClient, EventType } from 'piratetok-live-js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const httpServer = createServer(app);
 
-// Chỉ cho phép frontend đã khai báo kết nối. Có thể thêm nhiều origin,
-// phân tách bằng dấu phẩy trong FRONTEND_ORIGINS.
 const allowedOrigins = new Set(
   (process.env.FRONTEND_ORIGINS || 'https://chua-tinh-tam.vercel.app')
     .split(',')
@@ -35,16 +33,22 @@ const io = new Server(httpServer, { cors: corsOptions });
 app.use(cors(corsOptions));
 app.use(express.json());
 
+/** @type {Map<string, InstanceType<typeof TikTokLiveClient>>} */
+const connections = new Map();
+
 app.get('/health', (_req, res) => {
-  res.json({ ok: true, service: 'chua-tinh-tam', status: 'ready', uptimeSec: Math.floor(process.uptime()), tiktokConnections: connections.size });
+  res.json({
+    ok: true,
+    service: 'chua-tinh-tam',
+    status: 'ready',
+    uptimeSec: Math.floor(process.uptime()),
+    tiktokConnections: connections.size,
+    tiktokProvider: 'piratetok-live-js',
+  });
 });
 
-// Production: serve built frontend
 const distPath = path.join(__dirname, '..', 'dist');
 app.use(express.static(distPath));
-
-/** @type {Map<string, WebcastPushConnection>} */
-const connections = new Map();
 
 io.on('connection', (socket) => {
   console.log('[WS] client', socket.id);
@@ -60,144 +64,123 @@ io.on('connection', (socket) => {
       return;
     }
 
-    // Disconnect previous for this socket
     const prev = connections.get(socket.id);
     if (prev) {
-      try {
-        prev.disconnect();
-      } catch (_) {}
+      try { await prev.disconnect(); } catch (_) {}
       connections.delete(socket.id);
     }
 
     socket.emit('tiktok:status', { status: 'connecting', uniqueId });
 
-    const tiktok = new WebcastPushConnection(uniqueId, {
-      processInitialData: false,
-      enableExtendedGiftInfo: true,
-    });
-
+    const tiktok = new TikTokLiveClient(uniqueId).maxRetries(10);
     connections.set(socket.id, tiktok);
 
-    tiktok
-      .connect()
-      .then((state) => {
-        console.log('[TikTok] connected', uniqueId, 'roomId', state.roomId);
-        socket.emit('tiktok:status', {
-          status: 'connected',
-          uniqueId,
-          roomId: state.roomId,
-        });
-      })
-      .catch((err) => {
-        console.error('[TikTok] connect error', err?.message || err);
-        if (connections.get(socket.id) === tiktok) connections.delete(socket.id);
-        socket.emit('tiktok:error', {
-          message:
-            err?.message ||
-            'Không kết nối được. Kiểm tra username đang LIVE và thử lại.',
-        });
-        socket.emit('tiktok:status', { status: 'disconnected', uniqueId });
-      });
+    const emitUser = (data) => ({
+      uniqueId: data?.user?.uniqueId || data?.user?.unique_id || data?.user?.username || uniqueId,
+      nickname: data?.user?.nickname || data?.user?.uniqueId || data?.user?.username || uniqueId,
+      userId: String(data?.user?.id || data?.user?.userId || ''),
+    });
 
-    // —— Map TikTok events → frontend (engine quy tắc phía client) ——
-
-    tiktok.on('chat', (data) => {
+    tiktok.on(EventType.chat, (data) => {
+      const user = emitUser(data);
       socket.emit('tiktok:chat', {
-        uniqueId: data.uniqueId,
-        nickname: data.nickname || data.uniqueId,
-        comment: data.comment,
-        userId: data.userId,
+        ...user,
+        comment: data?.content || data?.comment || '',
       });
     });
 
-    tiktok.on('gift', (data) => {
-      // repeatEnd: chỉ tính khi kết thúc combo (tránh spam)
-      if (data.giftType === 1 && !data.repeatEnd) return;
-
-      const repeat = data.repeatCount || 1;
-      const diamond = data.diamondCount || data.diamond_count || 1;
-      const totalXu = diamond * repeat;
-
+    tiktok.on(EventType.gift, (data) => {
+      if (data?.isCombo && !data?.isStreakOver) return;
+      const user = emitUser(data);
+      const repeat = Number(data?.repeatCount || 1);
+      const diamond = Number(data?.gift?.diamondCount || data?.diamondCount || 0);
       socket.emit('tiktok:gift', {
-        uniqueId: data.uniqueId,
-        nickname: data.nickname || data.uniqueId,
-        giftName: data.giftName || data.extendedGiftInfo?.name || 'Quà',
+        ...user,
+        giftName: data?.gift?.name || data?.giftName || 'Quà',
         repeatCount: repeat,
         diamondCount: diamond,
-        totalXu,
+        totalXu: Number(data?.diamondTotal || diamond * repeat),
       });
     });
 
-    tiktok.on('like', (data) => {
+    tiktok.on(EventType.like, (data) => {
+      const user = emitUser(data);
       socket.emit('tiktok:like', {
-        uniqueId: data.uniqueId,
-        nickname: data.nickname || data.uniqueId,
-        likeCount: data.likeCount || 1,
-        totalLikeCount: data.totalLikeCount,
+        ...user,
+        likeCount: Number(data?.count || data?.likeCount || 1),
+        totalLikeCount: Number(data?.total || data?.totalLikes || data?.totalLikeCount || 0),
       });
     });
 
-    tiktok.on('social', (data) => {
-      // follow / share
-      const display = data.displayType || '';
-      const isFollow = String(display).includes('follow');
-      const isShare = String(display).includes('share');
-      if (isFollow || isShare) {
-        socket.emit('tiktok:social', {
-          uniqueId: data.uniqueId,
-          nickname: data.nickname || data.uniqueId,
-          action: isFollow ? 'follow' : 'share',
-        });
-      }
+    tiktok.on(EventType.follow, (data) => {
+      socket.emit('tiktok:social', { ...emitUser(data), action: 'follow' });
     });
 
-    tiktok.on('member', (data) => {
-      socket.emit('tiktok:member', {
-        uniqueId: data.uniqueId,
-        nickname: data.nickname || data.uniqueId,
-      });
+    tiktok.on(EventType.share, (data) => {
+      socket.emit('tiktok:social', { ...emitUser(data), action: 'share' });
     });
 
-    tiktok.on('streamEnd', () => {
+    tiktok.on(EventType.join, (data) => {
+      socket.emit('tiktok:member', emitUser(data));
+    });
+
+    tiktok.on('liveEnded', () => {
       socket.emit('tiktok:status', { status: 'ended', uniqueId });
-      connections.delete(socket.id);
+      if (connections.get(socket.id) === tiktok) connections.delete(socket.id);
+    });
+
+    tiktok.on('reconnecting', () => {
+      socket.emit('tiktok:status', { status: 'connecting', uniqueId, reconnecting: true });
     });
 
     tiktok.on('disconnected', () => {
       socket.emit('tiktok:status', { status: 'disconnected', uniqueId });
-      connections.delete(socket.id);
+      if (connections.get(socket.id) === tiktok) connections.delete(socket.id);
     });
 
     tiktok.on('error', (err) => {
+      console.error('[TikTok] stream error', err?.message || err);
       socket.emit('tiktok:error', {
-        message: err?.message || String(err),
+        message: err?.message || 'Không thể nhận dữ liệu TikTok LIVE.',
       });
     });
+
+    try {
+      const roomId = await tiktok.connect();
+      if (connections.get(socket.id) !== tiktok) {
+        await tiktok.disconnect();
+        return;
+      }
+      console.log('[TikTok] connected', uniqueId, 'roomId', roomId);
+      socket.emit('tiktok:status', { status: 'connected', uniqueId, roomId });
+    } catch (err) {
+      console.error('[TikTok] connect error', err?.message || err);
+      if (connections.get(socket.id) === tiktok) connections.delete(socket.id);
+      socket.emit('tiktok:error', {
+        message: err?.message || 'Không kết nối được. Kiểm tra username đang LIVE và thử lại.',
+      });
+      socket.emit('tiktok:status', { status: 'disconnected', uniqueId });
+    }
   });
 
-  socket.on('tiktok:disconnect', () => {
+  socket.on('tiktok:disconnect', async () => {
     const prev = connections.get(socket.id);
     if (prev) {
-      try {
-        prev.disconnect();
-      } catch (_) {}
+      try { await prev.disconnect(); } catch (_) {}
       connections.delete(socket.id);
     }
     socket.emit('tiktok:status', { status: 'disconnected' });
   });
 
-  socket.on('disconnect', () => {
+  socket.on('disconnect', async () => {
     const prev = connections.get(socket.id);
     if (prev) {
-      try {
-        prev.disconnect();
-      } catch (_) {}
+      try { await prev.disconnect(); } catch (_) {}
       connections.delete(socket.id);
     }
   });
 });
 
-// SPA fallback
 app.get('*', (_req, res) => {
   res.sendFile(path.join(distPath, 'index.html'), (err) => {
     if (err) res.status(200).send('Chạy npm run build hoặc dùng Vite dev + server riêng.');
@@ -207,5 +190,5 @@ app.get('*', (_req, res) => {
 const PORT = process.env.PORT || 3001;
 httpServer.listen(PORT, () => {
   console.log(`Chùa Tịnh Tâm server: http://localhost:${PORT}`);
-  console.log('Socket.io + TikTok Live Connector sẵn sàng.');
+  console.log('Socket.io + TikTok LIVE connector không cần Euler signing sẵn sàng.');
 });
