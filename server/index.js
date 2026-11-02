@@ -15,16 +15,20 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const httpServer = createServer(app);
 
-const allowedOrigins = new Set(
-  (process.env.FRONTEND_ORIGINS || 'https://chua-tinh-tam.vercel.app')
+// Always keep the real production origin allowed. FRONTEND_ORIGINS can add
+// trusted preview/custom domains, but must never accidentally remove production.
+const allowedOrigins = new Set([
+  'https://chua-tinh-tam.vercel.app',
+  ...(process.env.FRONTEND_ORIGINS || '')
     .split(',')
-    .map((value) => value.trim())
-    .filter(Boolean)
-);
+    .map((value) => value.trim().replace(/\/$/, ''))
+    .filter(Boolean),
+]);
 const originAllowed = (origin) => !origin || allowedOrigins.has(origin);
 const corsOptions = {
   origin(origin, callback) {
     if (originAllowed(origin)) return callback(null, true);
+    console.warn('[CORS] blocked origin:', origin || '(missing)');
     return callback(new Error('Origin không được phép kết nối Chùa Tịnh Tâm'));
   },
 };
@@ -124,16 +128,33 @@ io.on('connection', (socket) => {
       socket.emit('tiktok:member', emitUser(data));
     });
 
-    tiktok.on('liveEnded', () => {
+    // PirateTok reports connection state through events. Do not wait for
+    // connect() to resolve: some versions keep its promise pending while the
+    // reconnect loop is active.
+    tiktok.on(EventType.connected, (data) => {
+      socket.emit('tiktok:status', {
+        status: 'connected',
+        uniqueId,
+        roomId: data?.roomId,
+      });
+    });
+
+    tiktok.on(EventType.liveEnded, () => {
       socket.emit('tiktok:status', { status: 'ended', uniqueId });
       if (connections.get(socket.id) === tiktok) connections.delete(socket.id);
     });
 
-    tiktok.on('reconnecting', () => {
-      socket.emit('tiktok:status', { status: 'connecting', uniqueId, reconnecting: true });
+    tiktok.on(EventType.reconnecting, (data) => {
+      socket.emit('tiktok:status', {
+        status: 'connecting',
+        uniqueId,
+        reconnecting: true,
+        attempt: data?.attempt,
+        maxRetries: data?.maxRetries,
+      });
     });
 
-    tiktok.on('disconnected', () => {
+    tiktok.on(EventType.disconnected, () => {
       socket.emit('tiktok:status', { status: 'disconnected', uniqueId });
       if (connections.get(socket.id) === tiktok) connections.delete(socket.id);
     });
@@ -145,22 +166,16 @@ io.on('connection', (socket) => {
       });
     });
 
-    try {
-      const roomId = await tiktok.connect();
-      if (connections.get(socket.id) !== tiktok) {
-        await tiktok.disconnect();
-        return;
-      }
-      console.log('[TikTok] connected', uniqueId, 'roomId', roomId);
-      socket.emit('tiktok:status', { status: 'connected', uniqueId, roomId });
-    } catch (err) {
+    // Start the connection in the background. The connected/disconnected
+    // events above are the source of truth for UI state.
+    void tiktok.connect().catch((err) => {
       console.error('[TikTok] connect error', err?.message || err);
       if (connections.get(socket.id) === tiktok) connections.delete(socket.id);
       socket.emit('tiktok:error', {
         message: err?.message || 'Không kết nối được. Kiểm tra username đang LIVE và thử lại.',
       });
       socket.emit('tiktok:status', { status: 'disconnected', uniqueId });
-    }
+    });
   });
 
   socket.on('tiktok:disconnect', async () => {
