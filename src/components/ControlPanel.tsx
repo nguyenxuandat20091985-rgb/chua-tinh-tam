@@ -17,6 +17,7 @@ import {
   getStats,
   resetMerit,
   addLiveMember,
+  clearLiveMembers,
   subscribe,
 } from '../lib/store';
 import { speak } from '../lib/tts';
@@ -74,6 +75,7 @@ export function ControlPanel({ onRitual }: Props) {
   useEffect(() => {
     const s = getSocket();
     const onStatus = (data: { status: string }) => {
+      if (data.status === 'connecting' || data.status === 'disconnected' || data.status === 'ended') clearLiveMembers();
       setLiveStatus(data.status as typeof liveStatus);
       if (data.status === 'connected') setLiveError('');
     };
