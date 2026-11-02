@@ -15,14 +15,53 @@ export interface RitualLog {
   detail: string;
 }
 
-let ranking = new Map<string, number>();
-let logs: RitualLog[] = [];
-let incenseCount = 0;
-let totalMerit = 0;
+const STORAGE_KEY = 'chua-tinh-tam:merit:v1';
+
+interface PersistedStore {
+  ranking: [string, number][];
+  logs: RitualLog[];
+  incenseCount: number;
+  totalMerit: number;
+}
+
+function loadStore(): PersistedStore | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const value = JSON.parse(raw) as PersistedStore;
+    if (!Array.isArray(value.ranking) || !Array.isArray(value.logs)) return null;
+    return value;
+  } catch {
+    return null;
+  }
+}
+
+const initial = loadStore();
+let ranking = new Map<string, number>(initial?.ranking ?? []);
+let logs: RitualLog[] = initial?.logs ?? [];
+let incenseCount = Math.max(0, Number(initial?.incenseCount) || 0);
+let totalMerit = Math.max(0, Number(initial?.totalMerit) || 0);
 
 const listeners = new Set<() => void>();
 
+function persist() {
+  if (typeof window === 'undefined') return;
+  try {
+    const value: PersistedStore = {
+      ranking: Array.from(ranking.entries()),
+      logs: logs.slice(0, 80),
+      incenseCount,
+      totalMerit,
+    };
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(value));
+  } catch {
+    // Storage can be unavailable or full; in-memory operation remains available.
+  }
+}
+
 function notify() {
+  persist();
   listeners.forEach((fn) => fn());
 }
 
@@ -65,7 +104,7 @@ export function getLogs() {
 }
 
 export function getStats() {
-  return { incenseCount, totalMerit, onlineSim: 80 + Math.floor(Math.random() * 40) };
+  return { incenseCount, totalMerit };
 }
 
 export function resetMerit() {
