@@ -16,30 +16,21 @@ interface Props {
   onOffer?: (ritual: RitualId, label: string) => void;
 }
 
-/**
- * Ưu tiên ảnh Manus anh upload vào public/temple-hall.jpg
- * Nếu chưa có → dùng ảnh chánh điện Phật (Pexels) để không bị nền đen.
- */
-const LOCAL_IMG = '/temple-hall.jpg';
-const LOCAL_WEBP = '/temple-hall.webp';
-const LOCAL_CLEAN = '/temple-hall-clean.png';
-const REMOTE_TEMPLE =
-  'https://images.pexels.com/photos/34035030/pexels-photo-34035030.jpeg?auto=compress&cs=tinysrgb&w=1400';
-
-const ENV_IMG =
-  typeof import.meta !== 'undefined'
-    ? (import.meta as any).env?.VITE_TEMPLE_HALL_URL
-    : undefined;
+/** Ảnh chánh điện từ bản Chánh Điện Tịnh Tâm (kentjuno) — đã có thảm + chiều sâu */
+const HALL_IMG =
+  (typeof import.meta !== 'undefined' &&
+    (import.meta as any).env?.VITE_TEMPLE_HALL_URL) ||
+  'https://raw.githubusercontent.com/kentjuno/chanh-dien-online/main/assets/hall.jpg';
 
 const DEFAULT_TAGS = [
-  { name: 'Thuý sa mạc', side: 'left' as const, x: '7%', y: '58%' },
-  { name: 'Chương Văn', side: 'right' as const, x: '7%', y: '58%' },
-  { name: 'Anh Thu', side: 'left' as const, x: '17%', y: '64%' },
-  { name: 'Nguyễn Cao', side: 'right' as const, x: '17%', y: '64%' },
+  { name: 'Thuý sa mạc', side: 'left' as const, x: '6%', y: '55%' },
+  { name: 'Chương Văn', side: 'right' as const, x: '6%', y: '55%' },
+  { name: 'Anh Thu', side: 'left' as const, x: '14%', y: '62%' },
+  { name: 'Nguyễn Cao', side: 'right' as const, x: '14%', y: '62%' },
   { name: 'Điện m', side: 'left' as const, x: '8%', y: '70%' },
   { name: 'Bot Đảm', side: 'right' as const, x: '8%', y: '70%' },
-  { name: 'Yumi Dương', side: 'left' as const, x: '22%', y: '76%' },
-  { name: 'Tâm An', side: 'left' as const, x: '4%', y: '82%' },
+  { name: 'Yumi Dương', side: 'left' as const, x: '18%', y: '76%' },
+  { name: 'Tâm An', side: 'left' as const, x: '5%', y: '82%' },
 ];
 
 const TONES = ['coral', 'gold', 'blue'] as const;
@@ -56,7 +47,6 @@ export function LiveChinhDien({
   const [now, setNow] = useState(() =>
     new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
   );
-  const [bgUrl, setBgUrl] = useState(ENV_IMG || REMOTE_TEMPLE);
 
   useEffect(() => {
     return subscribe(() => {
@@ -76,37 +66,6 @@ export function LiveChinhDien({
       );
     }, 30000);
     return () => window.clearInterval(t);
-  }, []);
-
-  // Thử lần lượt: env → local Manus → remote
-  useEffect(() => {
-    if (ENV_IMG) {
-      setBgUrl(ENV_IMG);
-      return;
-    }
-    let cancelled = false;
-    const tryUrl = (url: string) =>
-      new Promise<boolean>((resolve) => {
-        const img = new Image();
-        img.onload = () => resolve(true);
-        img.onerror = () => resolve(false);
-        img.src = url;
-      });
-
-    (async () => {
-      for (const url of [LOCAL_IMG, LOCAL_WEBP, LOCAL_CLEAN, REMOTE_TEMPLE]) {
-        const ok = await tryUrl(url);
-        if (cancelled) return;
-        if (ok) {
-          setBgUrl(url);
-          return;
-        }
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
   }, []);
 
   const connected = liveStatus === 'connected';
@@ -134,7 +93,7 @@ export function LiveChinhDien({
     <div className={`temple-app ${isOffline ? 'is-offline' : 'is-live'}`}>
       <div
         className="temple-stage"
-        style={{ ['--temple-image' as string]: `url(${bgUrl})` }}
+        style={{ ['--temple-image' as string]: `url(${HALL_IMG})` }}
       >
         <div className="stage-vignette" />
 
