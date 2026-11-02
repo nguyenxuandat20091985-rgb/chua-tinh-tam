@@ -13,6 +13,7 @@ export default function App() {
   const [activeRitual, setActiveRitual] = useState<RitualId | null>(null);
   const [ritualLabel, setRitualLabel] = useState('');
   const [liveStatus, setLiveStatus] = useState<'idle' | 'connecting' | 'connected' | 'disconnected' | 'ended'>('idle');
+  const [panelExpanded, setPanelExpanded] = useState(() => typeof window !== 'undefined' && window.innerWidth > 900);
 
   return (
     <div className="app">
@@ -49,13 +50,16 @@ export default function App() {
               <TempleView activeRitual={activeRitual} ritualLabel={ritualLabel} liveStatus={liveStatus} />
             </div>
             <div className="col-panel">
-              <ControlPanel
+              <details className="control-drawer" open={panelExpanded} onToggle={(event) => setPanelExpanded(event.currentTarget.open)}>
+                <summary>⚙️ Bảng điều khiển LIVE <span>{panelExpanded ? 'Thu gọn' : 'Mở điều khiển'}</span></summary>
+                <ControlPanel
                 onLiveStatus={setLiveStatus}
                 onRitual={(ritual, label) => {
                   setActiveRitual(ritual);
                   setRitualLabel(label);
                 }}
-              />
+                />
+              </details>
             </div>
           </div>
         )}
@@ -130,15 +134,20 @@ export default function App() {
           align-items: start;
         }
         @media (max-width: 900px) {
-          .live-layout { grid-template-columns: 1fr; }
+          .live-layout { grid-template-columns: minmax(0, 1fr); }
+          .main { padding: 8px 8px 22px; }
+          .col-panel { max-height: none; overflow: visible; }
         }
         .col-temple {
           min-height: 520px;
         }
-        .col-panel {
-          max-height: calc(100vh - 80px);
-          overflow-y: auto;
-        }
+        .col-panel { max-height: calc(100vh - 80px); overflow-y: auto; }
+        .control-drawer { border: 1px solid rgba(201,162,39,.35); border-radius: 12px; background: #120c08; overflow: hidden; }
+        .control-drawer > summary { display:flex; justify-content:space-between; align-items:center; padding:12px 14px; color:#ffdc86; font-weight:700; cursor:pointer; list-style:none; background:linear-gradient(90deg,#2b190d,#170e08); }
+        .control-drawer > summary::-webkit-details-marker { display:none; }
+        .control-drawer > summary span { font-size:.75rem; color:#c9a66a; font-weight:500; }
+        .control-drawer[open] > summary { border-bottom:1px solid rgba(201,162,39,.25); }
+        .control-drawer > .cp { padding:12px; }
         .tour-wrap { max-width: 960px; margin: 0 auto; }
       `}</style>
     </div>
