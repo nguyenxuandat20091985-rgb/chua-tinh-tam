@@ -109,7 +109,7 @@ export function TempleView({ activeRitual, ritualLabel, liveStatus }: Props) {
         <div className="nave-floor">
           <div className="red-carpet"><div className="carpet-border"><span>✥　✥　✥　✥　✥　✥　✥</span></div></div>
           <div className="devotee-crowd" aria-hidden="true">
-            {CROWD.map(person => <div key={person.id} className={`devotee ${person.side} row-${person.row}`} style={{'--robe':person.shade, gridColumn: person.side === 'left' ? person.col + 1 : person.col + 12, gridRow: person.row + 1} as CSSProperties}>
+            {CROWD.map(person => <div key={person.id} className={`devotee ${person.side} row-${person.row}`} style={{'--robe':person.shade, gridColumn: person.side === 'left' ? person.col + 1 : person.col + 17, gridRow: person.row + 1} as CSSProperties}>
               <i className="devotee-head"/><i className="devotee-body"/><i className="devotee-knee"/>
             </div>)}
           </div>
@@ -184,7 +184,7 @@ const STYLES = `
 .nave-floor:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 9%,#e0ae5222 9.2% 9.5%,transparent 9.8% 19%);opacity:.5}
 .red-carpet{position:absolute;z-index:1;top:0;bottom:0;left:50%;width:31%;transform:translateX(-50%);background:repeating-linear-gradient(0deg,#8c1025 0 25px,#a91d34 26px 28px,#7e1022 30px 54px);border-left:3px solid #e7bb62;border-right:3px solid #e7bb62;box-shadow:0 0 20px #0009}
 .carpet-border{position:absolute;inset:8px 4px;border:1px solid #e7b75a88;color:#efc76d;text-align:center;writing-mode:vertical-rl;letter-spacing:12px;font-size:9px;opacity:.8}
-.devotee-crowd{position:absolute;z-index:2;inset:4% 0 0;display:grid;grid-template-columns:repeat(22,minmax(0,1fr));grid-template-rows:repeat(10,minmax(0,1fr));pointer-events:none}
+.devotee-crowd{position:absolute;z-index:2;inset:4% 0 0;display:grid;grid-template-columns:repeat(26,minmax(0,1fr));grid-template-rows:repeat(10,minmax(0,1fr));pointer-events:none}
 .devotee{position:relative;display:flex;align-items:flex-end;justify-content:center;transform:scale(var(--scale,.85));filter:drop-shadow(0 3px 2px #0009)}
 .devotee.row-0{opacity:.8}.devotee.row-1{opacity:.88}.devotee.row-2{opacity:.96}
 .devotee-head{position:absolute;top:12%;width:9px;height:10px;border-radius:48% 48% 44% 44%;background:linear-gradient(90deg,#9b694e,#e0b28a);z-index:2}
