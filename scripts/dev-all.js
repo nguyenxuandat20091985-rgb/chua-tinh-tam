@@ -1,14 +1,21 @@
 import { spawn } from 'node:child_process';
+import { existsSync } from 'node:fs';
+import path from 'node:path';
 
-const isWindows = process.platform === 'win32';
-const npmCommand = isWindows ? 'npm.cmd' : 'npm';
+const root = process.cwd();
+const viteBin = path.join(root, 'node_modules', 'vite', 'bin', 'vite.js');
+if (!existsSync(viteBin)) {
+  console.error('Chưa cài dependencies. Hãy chạy: npm install');
+  process.exit(1);
+}
+
 const children = [];
 let stopping = false;
 
 function start(label, args) {
-  const child = spawn(npmCommand, args, {
+  const child = spawn(process.execPath, args, {
+    cwd: root,
     stdio: 'inherit',
-    shell: isWindows,
     env: process.env,
   });
   children.push({ label, child });
@@ -29,19 +36,24 @@ function stop(code = 0) {
   if (stopping) return;
   stopping = true;
   for (const { child } of children) {
-    if (!child.killed) child.kill('SIGTERM');
+    if (child.exitCode === null && !child.killed) child.kill('SIGTERM');
   }
-  setTimeout(() => process.exit(code), 300);
+  const forceStop = setTimeout(() => {
+    for (const { child } of children) {
+      if (child.exitCode === null) child.kill('SIGKILL');
+    }
+    process.exit(code);
+  }, 1500);
+  forceStop.unref();
+  Promise.all(children.map(({ child }) => new Promise((resolve) => {
+    if (child.exitCode !== null) return resolve();
+    child.once('exit', resolve);
+  }))).then(() => process.exit(code));
 }
 
 process.on('SIGINT', () => stop(0));
 process.on('SIGTERM', () => stop(0));
-process.on('exit', () => {
-  for (const { child } of children) {
-    if (!child.killed) child.kill('SIGTERM');
-  }
-});
 
-console.log('Khởi động giao diện Vite (http://localhost:3000) và TikTok Socket.IO (http://localhost:3001)...');
-start('TikTok server', ['run', 'dev:server']);
-start('Frontend', ['run', 'dev']);
+console.log('Chùa Tịnh Tâm: Frontend http://localhost:3000 | TikTok Socket.IO http://localhost:3001');
+start('TikTok server', [path.join(root, 'server', 'index.js')]);
+start('Frontend', [viteBin]);
