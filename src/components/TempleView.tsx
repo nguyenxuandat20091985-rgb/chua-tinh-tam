@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import type { CSSProperties } from 'react';
 import type { RitualId } from '../lib/rules';
 import { RITUAL_LABELS } from '../lib/rules';
 import { getStats, getTopRanking, getLiveMembers, subscribe } from '../lib/store';
@@ -107,12 +108,12 @@ export function TempleView({ activeRitual, ritualLabel, liveStatus }: Props) {
         <div className="nave-floor">
           <div className="red-carpet"><div className="carpet-border"><span>✥　✥　✥　✥　✥　✥　✥</span></div></div>
           <div className="devotee-crowd" aria-hidden="true">
-            {CROWD.map(person => <div key={person.id} className={`devotee ${person.side} row-${person.row}`} style={{'--robe':person.shade} as React.CSSProperties}>
+            {CROWD.map(person => <div key={person.id} className={`devotee ${person.side} row-${person.row}`} style={{'--robe':person.shade} as CSSProperties}>
               <i className="devotee-head"/><i className="devotee-body"/><i className="devotee-knee"/>
             </div>)}
           </div>
           <div className="live-names" aria-live="polite">
-            {eventNames.map((name, i) => <span key={name} className={`live-name name-${i%6}`} style={{'--delay':`${i*75}ms`} as React.CSSProperties}>
+            {eventNames.map((name, i) => <span key={name} className={`live-name name-${i%6}`} style={{'--delay':`${i*75}ms`} as CSSProperties}>
               <b>{name.trim().slice(0,1).toUpperCase()}</b>{name}
             </span>)}
           </div>
@@ -126,7 +127,7 @@ export function TempleView({ activeRitual, ritualLabel, liveStatus }: Props) {
         </aside>
 
         {flash && <div className={`ritual-overlay ${isMajorGift ? 'lotus-rain' : ''}`} aria-live="assertive">
-          {isMajorGift && <div className="petal-rain">{Array.from({length:26},(_,i)=><i key={i} style={{'--x':`${(i*37)%100}%`,'--delay':`${(i%8)*.16}s`} as React.CSSProperties}>🪷</i>)}</div>}
+          {isMajorGift && <div className="petal-rain">{Array.from({length:26},(_,i)=><i key={i} style={{'--x':`${(i*37)%100}%`,'--delay':`${(i%8)*.16}s`} as CSSProperties}>🪷</i>)}</div>}
           <div className="ritual-card"><span>{ritualEmoji(ritual)}</span><b>{ritualLabel || RITUAL_LABELS[ritual]}</b></div>
         </div>}
 
