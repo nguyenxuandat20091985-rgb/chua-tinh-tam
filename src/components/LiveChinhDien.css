@@ -36,6 +36,13 @@
 .live-name-tag i { display: inline-block; flex: 0 0 auto; width: 6px; height: 6px; border-radius: 50%; background: #a9c7bd; box-shadow: 0 0 8px rgba(177, 226, 200, .48); }
 .live-name-tag--right i { background: #d4ae77; }
 
+.live-pilgrims { position: absolute; z-index: 5; inset: 0; pointer-events: none; overflow: hidden; }
+.live-pilgrim { position: absolute; width: clamp(22px, 13vw, 72px); transform-origin: 50% 100%; transform: translateY(16px) scale(calc(.92 - (var(--seat-depth, 0) * .045))); opacity: 0; animation: pilgrimEnter .9s cubic-bezier(.2,.8,.25,1) var(--pilgrim-delay, 0ms) forwards, pilgrimPrayer 3.8s ease-in-out calc(1s + var(--pilgrim-delay, 0ms)) infinite; filter: drop-shadow(0 5px 7px rgba(12, 3, 2, .32)); }
+.live-pilgrim--right { transform-origin: 50% 100%; }
+.live-pilgrim img { display: block; width: 100%; height: auto; opacity: .96; }
+.pilgrim-route { position: absolute; left: 50%; bottom: 2px; width: 50%; height: 7px; transform: translateX(-50%); border-radius: 50%; background: rgba(242, 196, 112, .2); filter: blur(4px); }
+.pilgrim-incense-smoke { position: absolute; left: 50%; top: 3%; width: 12px; height: 48px; transform: translateX(-50%); border-radius: 50%; background: linear-gradient(180deg, rgba(255,241,203,.05), rgba(255,241,203,.42), rgba(255,241,203,0)); filter: blur(4px); animation: smokeRise 2.3s ease-in-out infinite; }
+
 .merit-card { position: absolute; z-index: 7; right: 12px; bottom: 22%; width: min(48%, 195px); padding: 12px 12px 10px; border: 1px solid rgba(236, 198, 121, .28); border-radius: 11px; background: linear-gradient(145deg, rgba(55, 24, 13, .79), rgba(21, 9, 8, .86)); box-shadow: 0 10px 28px rgba(0,0,0,.28); backdrop-filter: blur(11px); }
 .merit-card__header, .merit-card__foot { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
 .merit-card__header { padding-bottom: 8px; border-bottom: 1px solid rgba(240, 206, 139, .14); color: #f1d6a4; font-size: 9px; font-weight: 700; letter-spacing: .06em; }
@@ -74,6 +81,9 @@
 
 @keyframes blink { 50% { opacity: .42; } }
 @keyframes ritualIn { from { opacity: 0; transform: translate(-50%, -10px) scale(.95); } to { opacity: 1; transform: translate(-50%, 0) scale(1); } }
+@keyframes pilgrimEnter { from { opacity: 0; transform: translateY(34px) scale(calc(.72 - (var(--seat-depth, 0) * .035))); } 70% { opacity: 1; } to { opacity: calc(1 - (var(--seat-depth, 0) * .055)); transform: translateY(0) scale(calc(.92 - (var(--seat-depth, 0) * .045))); } }
+@keyframes pilgrimPrayer { 0%, 100% { filter: drop-shadow(0 5px 7px rgba(12, 3, 2, .32)); } 46% { transform: translateY(-2px) scale(calc(.92 - (var(--seat-depth, 0) * .045))); filter: drop-shadow(0 8px 11px rgba(12, 3, 2, .27)); } 53% { transform: translateY(1px) scale(calc(.92 - (var(--seat-depth, 0) * .045))); } }
+@keyframes smokeRise { 0% { opacity: 0; transform: translate(-50%, 8px) scale(.7); } 35% { opacity: .7; } 100% { opacity: 0; transform: translate(-30%, -34px) scale(1.35); } }
 
 @media (max-width: 420px) {
   .merit-card { width: min(52%, 170px); bottom: 20%; transform: scale(.95); transform-origin: bottom right; }

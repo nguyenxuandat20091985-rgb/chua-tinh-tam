@@ -74,6 +74,15 @@ export function LiveChinhDien({
     }))
     : [], [connected, liveSeats]);
 
+  const activePilgrims = useMemo(() => {
+    if (!connected) return [];
+    return members.slice(0, 4).map((name) => {
+      const seat = liveSeats.find((item) => item.occupiedBy === name);
+      if (!seat) return null;
+      return { name, ...seat };
+    }).filter(Boolean) as Array<(typeof liveSeats)[number] & { name: string }>;
+  }, [connected, liveSeats, members]);
+
   const peopleLabel =
     members.length > 0
       ? members.length.toLocaleString('vi-VN')
@@ -152,6 +161,22 @@ export function LiveChinhDien({
                 <i />
                 {tag.name}
               </span>
+            ))}
+          </div>
+        )}
+
+        {activePilgrims.length > 0 && (
+          <div className="live-pilgrims" aria-label="Phật tử đang hành lễ">
+            {activePilgrims.map((pilgrim, index) => (
+              <div
+                key={`pilgrim-${pilgrim.name}-${pilgrim.id}`}
+                className={`live-pilgrim live-pilgrim--${pilgrim.side}`}
+                style={{ [pilgrim.side]: `${Math.max(1, pilgrim.x - 1.5)}%`, top: `${pilgrim.y + 4}%`, '--seat-depth': pilgrim.depth, '--pilgrim-delay': `${index * 140}ms` } as CSSProperties}
+              >
+                <span className="pilgrim-route" />
+                <img src="/devotee-praying.webp" alt="Phật tử đang chắp tay lễ Phật" />
+                {activeRitual === 'thap_huong' && index === 0 && <span className="pilgrim-incense-smoke" />}
+              </div>
             ))}
           </div>
         )}
