@@ -25,9 +25,10 @@ import { getSocket, connectTikTok, disconnectTikTok } from '../lib/tiktokSocket'
 
 interface Props {
   onRitual?: (ritual: RitualId, label: string) => void;
+  onLiveStatus?: (status: 'idle' | 'connecting' | 'connected' | 'disconnected' | 'ended') => void;
 }
 
-export function ControlPanel({ onRitual }: Props) {
+export function ControlPanel({ onRitual, onLiveStatus }: Props) {
   const [username, setUsername] = useState('Phật tử');
   const [tiktokUser, setTiktokUser] = useState('lonelyking011');
   const [liveStatus, setLiveStatus] = useState<'idle' | 'connecting' | 'connected' | 'disconnected' | 'ended'>('idle');
@@ -77,6 +78,7 @@ export function ControlPanel({ onRitual }: Props) {
     const onStatus = (data: { status: string }) => {
       if (data.status === 'connecting' || data.status === 'disconnected' || data.status === 'ended') clearLiveMembers();
       setLiveStatus(data.status as typeof liveStatus);
+      onLiveStatus?.(data.status as typeof liveStatus);
       if (data.status === 'connected') setLiveError('');
     };
     const onError = (data: { message: string }) => {
@@ -123,7 +125,7 @@ export function ControlPanel({ onRitual }: Props) {
       s.off('tiktok:social', onSocial);
       s.off('tiktok:member', onMember);
     };
-  }, [applyResult]);
+  }, [applyResult, onLiveStatus]);
 
   const triggerRitual = (ritual: RitualId, label: string, merit: number, detail: string) => {
     const who = rpcName.trim() || username || 'Admin';
