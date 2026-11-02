@@ -73,7 +73,7 @@ export function LiveChinhDien({ activeRitual, ritualLabel, liveStatus, onOffer }
         <div className="hall-carpet"><span>✥　✥　✥　✥　✥　✥　✥</span></div>
         <div className="hall-crowd" aria-hidden="true">{crowd.map(p => <div key={p.id} className={'devotee ' + p.side} style={{'--robe':p.shade,gridColumn:p.side === 'left' ? p.col+1 : p.col+17,gridRow:p.row+1} as CSSProperties}><i/><b/><em/></div>)}</div>
         <div className="hall-name-tags" aria-label="Tên người tham dự LIVE">
-          {names.length ? names.map((name,i)=><span key={name} className={'name-tag tag-' + (i%6)}><b>{name.trim().slice(0,1).toUpperCase()}</b>{name}</span>) : placeholder.map((name,i)=><span key={name} className={'name-tag placeholder p' + i}><b>·</b>{name}</span>)}
+          {names.length ? names.map((name,i)=><span key={name} className={'name-tag tag-' + (i%6)} style={{top:(5 + (i%9)*9)+'%', [i%2 ? 'right' : 'left']:'2%'} as CSSProperties}><b>{name.trim().slice(0,1).toUpperCase()}</b>{name}</span>) : placeholder.map((name,i)=><span key={name} className={'name-tag placeholder p' + i}><b>·</b>{name}</span>)}
         </div>
       </div>
       <aside className="hall-ranking"><b>✦ TẤM LÒNG THÀNH</b>
