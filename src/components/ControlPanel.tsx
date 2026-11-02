@@ -40,7 +40,7 @@ interface Props {
 
 export function ControlPanel({ onRitual, onLiveStatus }: Props) {
   const [username, setUsername] = useState('Phật tử');
-  const [tiktokUser, setTiktokUser] = useState('lonelyking011');
+  const [tiktokUser, setTiktokUser] = useState('ducanhmedia12');
   const [liveStatus, setLiveStatus] = useState<'idle' | 'connecting' | 'connected' | 'disconnected' | 'ended'>('idle');
   const [liveError, setLiveError] = useState('');
   const [comment, setComment] = useState('');
@@ -100,6 +100,7 @@ export function ControlPanel({ onRitual, onLiveStatus }: Props) {
     const onError = (data: { message: string }) => {
       setLiveError(data.message || 'Lỗi');
       setLiveStatus('disconnected');
+      onLiveStatus?.('disconnected');
     };
     const onChat = (data: { nickname: string; comment: string }) => {
       addLiveMember(data.nickname || 'Phật tử');
@@ -196,7 +197,7 @@ export function ControlPanel({ onRitual, onLiveStatus }: Props) {
           <input
             value={tiktokUser}
             onChange={(e) => setTiktokUser(e.target.value)}
-            placeholder="lonelyking011"
+            placeholder="ducanhmedia12"
           />
           <button type="button" className="btn-gold" onClick={() => connectTikTok(tiktokUser.trim())}>
             Kết Nối

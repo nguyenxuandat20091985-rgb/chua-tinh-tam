@@ -1,9 +1,10 @@
 import { io, Socket } from 'socket.io-client';
 
 let socket: Socket | null = null;
+let activeTikTokUser: string | null = null;
 
 // In Vite development, the Socket.IO server always runs on port 3001.
-// In production, frontend and Socket.IO are served from the same origin.
+// In production, VITE_TIKTOK_SERVER_URL must point to the persistent Node service.
 const SERVER_URL =
   import.meta.env.VITE_TIKTOK_SERVER_URL ||
   (import.meta.env.DEV
@@ -20,6 +21,19 @@ export function getSocket(): Socket {
       reconnectionDelay: 1000,
       reconnectionDelayMax: 10000,
     });
+
+    // Khi Socket.IO tự kết nối lại, khôi phục phòng LIVE đang theo dõi.
+    socket.on('connect', () => {
+      if (activeTikTokUser) {
+        socket?.emit('tiktok:connect', { uniqueId: activeTikTokUser });
+      }
+    });
+
+    socket.on('tiktok:status', (data: { status?: string }) => {
+      if (data.status === 'disconnected' || data.status === 'ended') {
+        activeTikTokUser = null;
+      }
+    });
   }
   return socket;
 }
@@ -27,9 +41,14 @@ export function getSocket(): Socket {
 export function connectTikTok(uniqueId: string) {
   const normalized = uniqueId.trim().replace(/^@/, '');
   if (!normalized) return;
-  getSocket().emit('tiktok:connect', { uniqueId: normalized });
+  activeTikTokUser = normalized;
+  const current = getSocket();
+  if (current.connected) {
+    current.emit('tiktok:connect', { uniqueId: normalized });
+  }
 }
 
 export function disconnectTikTok() {
+  activeTikTokUser = null;
   getSocket().emit('tiktok:disconnect');
 }
