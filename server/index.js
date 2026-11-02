@@ -21,6 +21,10 @@ const io = new Server(httpServer, {
 app.use(cors());
 app.use(express.json());
 
+app.get('/health', (_req, res) => {
+  res.json({ ok: true, service: 'chua-tinh-tam', tiktokConnections: connections.size });
+});
+
 // Production: serve built frontend
 const distPath = path.join(__dirname, '..', 'dist');
 app.use(express.static(distPath));
@@ -34,7 +38,8 @@ io.on('connection', (socket) => {
   socket.on('tiktok:connect', async (payload) => {
     const uniqueId = String(payload?.uniqueId || '')
       .replace(/^@/, '')
-      .trim();
+      .trim()
+      .replace(/[^a-zA-Z0-9._]/g, '');
 
     if (!uniqueId) {
       socket.emit('tiktok:error', { message: 'Thiếu @username TikTok' });
@@ -72,7 +77,7 @@ io.on('connection', (socket) => {
       })
       .catch((err) => {
         console.error('[TikTok] connect error', err?.message || err);
-        connections.delete(socket.id);
+        if (connections.get(socket.id) === tiktok) connections.delete(socket.id);
         socket.emit('tiktok:error', {
           message:
             err?.message ||
