@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import type { RitualId } from '../lib/rules';
 import { RITUAL_LABELS } from '../lib/rules';
 import {
@@ -37,6 +37,8 @@ export function LiveChinhDien({
   const [members, setMembers] = useState(getLiveMembers());
   const [liveSeats, setLiveSeats] = useState(getLiveSeats());
   const [liveComments, setLiveComments] = useState(getLiveComments(5));
+  const [milestone, setMilestone] = useState<number | null>(null);
+  const previousOfferings = useRef(stats.incenseOfferings);
   const [now, setNow] = useState(() =>
     new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
   );
@@ -62,6 +64,18 @@ export function LiveChinhDien({
     }, 30000);
     return () => window.clearInterval(t);
   }, []);
+
+  useEffect(() => {
+    const current = stats.incenseOfferings;
+    const previous = previousOfferings.current;
+    previousOfferings.current = current;
+    if (current > previous && current > 0 && current % 100 === 0) {
+      setMilestone(current);
+      const timer = window.setTimeout(() => setMilestone(null), 4200);
+      return () => window.clearTimeout(timer);
+    }
+    return undefined;
+  }, [stats.incenseOfferings]);
 
   const connected = liveStatus === 'connected';
   const isOffline = !connected && liveStatus !== 'connecting';
@@ -157,6 +171,18 @@ export function LiveChinhDien({
           <span className="incense-counter__flame">♨</span>
           <span><small>LƯỢT DÂNG HƯƠNG</small><strong>{stats.incenseOfferings.toLocaleString('vi-VN')}</strong></span>
         </div>
+
+        {milestone !== null && (
+          <div className="milestone-blessing" role="status" aria-live="polite">
+            <div className="milestone-blessing__petals" aria-hidden="true">
+              {Array.from({ length: 8 }, (_, index) => <i key={index} style={{ transform: `rotate(${index * 45}deg) translateY(-18px)` }} />)}
+              <b>🪷</b>
+            </div>
+            <small>PHÁP HỘI HOAN HỶ</small>
+            <strong>{milestone.toLocaleString('vi-VN')} lượt dâng hương</strong>
+            <span>Nguyện cầu bình an · Hoa sen nở</span>
+          </div>
+        )}
 
         {tags.length > 0 && (
           <div className="live-name-tags" aria-label="Tên người đang tham dự">

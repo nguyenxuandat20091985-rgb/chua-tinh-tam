@@ -30,6 +30,14 @@
 .incense-counter span:last-child { display: grid; gap: 1px; }
 .incense-counter small { color: #cdb18b; font-size: 7px; letter-spacing: .08em; }
 .incense-counter strong { color: #ffe2a0; font-size: 13px; font-weight: 700; }
+.milestone-blessing { position: absolute; z-index: 12; top: 39%; left: 50%; display: grid; justify-items: center; gap: 3px; width: 190px; padding: 10px 12px 12px; transform: translateX(-50%); border: 1px solid rgba(255, 225, 147, .45); border-radius: 16px; background: linear-gradient(160deg, rgba(64, 29, 12, .9), rgba(25, 10, 8, .88)); box-shadow: 0 0 0 1px rgba(248, 194, 79, .08), 0 12px 35px rgba(7, 1, 0, .45), 0 0 38px rgba(248, 188, 66, .22); backdrop-filter: blur(12px); animation: milestoneIn .45s cubic-bezier(.16,.8,.26,1) both; }
+.milestone-blessing small { color: #f4ca73; font-size: 7px; letter-spacing: .16em; }
+.milestone-blessing strong { color: #fff0c5; font: 600 16px 'Playfair Display', serif; }
+.milestone-blessing > span:last-child { color: #d8c2a0; font-size: 8px; }
+.milestone-blessing__petals { position: relative; width: 48px; height: 34px; margin-top: -22px; }
+.milestone-blessing__petals i { position: absolute; left: 19px; top: 17px; width: 11px; height: 24px; border: 1px solid rgba(255, 227, 151, .55); border-radius: 80% 20% 70% 30%; background: linear-gradient(180deg, #fff0af, #d88965 88%); transform-origin: 50% 100%; animation: petalBloom .8s cubic-bezier(.16,.85,.25,1) both; }
+.milestone-blessing__petals i:nth-child(2n) { background: linear-gradient(180deg, #ffe7a0, #c86b63 88%); }
+.milestone-blessing__petals b { position: absolute; left: 12px; top: 8px; display: grid; place-items: center; width: 25px; height: 25px; border-radius: 50%; background: rgba(255, 212, 112, .17); font-size: 17px; animation: lotusPulse 1.8s ease-in-out .25s infinite; }
 .stat-pill { display: flex; align-items: center; gap: 7px; min-width: 87px; padding: 7px 9px; border: 1px solid rgba(244, 214, 163, .18); border-radius: 9px; background: rgba(31, 12, 7, .47); backdrop-filter: blur(9px); }
 .stat-pill__icon { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 7px; color: #ffdb80; background: rgba(223, 173, 76, .14); font-size: 12px; }
 .stat-pill span:last-child { display: grid; gap: 1px; }
@@ -97,6 +105,9 @@
 @keyframes pilgrimPrayer { 0%, 100% { filter: drop-shadow(0 5px 7px rgba(12, 3, 2, .32)); } 46% { transform: translateY(-2px) scale(calc(.92 - (var(--seat-depth, 0) * .045))); filter: drop-shadow(0 8px 11px rgba(12, 3, 2, .27)); } 53% { transform: translateY(1px) scale(calc(.92 - (var(--seat-depth, 0) * .045))); } }
 @keyframes smokeRise { 0% { opacity: 0; transform: translate(-50%, 8px) scale(.7); } 35% { opacity: .7; } 100% { opacity: 0; transform: translate(-30%, -34px) scale(1.35); } }
 @keyframes commentRise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes milestoneIn { from { opacity: 0; transform: translate(-50%, 18px) scale(.82); } to { opacity: 1; transform: translate(-50%, 0) scale(1); } }
+@keyframes petalBloom { from { opacity: 0; transform: rotate(0deg) translateY(-4px) scale(.15); } to { opacity: 1; } }
+@keyframes lotusPulse { 50% { transform: scale(1.12); filter: drop-shadow(0 0 10px rgba(255, 211, 113, .7)); } }
 
 @media (max-width: 420px) {
   .merit-card { width: min(52%, 170px); bottom: 20%; transform: scale(.95); transform-origin: bottom right; }
