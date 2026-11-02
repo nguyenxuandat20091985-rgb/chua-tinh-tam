@@ -16,13 +16,20 @@ interface Props {
   onOffer?: (ritual: RitualId, label: string) => void;
 }
 
-/** Ảnh Manus – đặt file vào public/temple-hall.webp hoặc public/temple-hall.jpg */
-const TEMPLE_IMAGE =
-  (typeof import.meta !== 'undefined' &&
-    (import.meta as any).env?.VITE_TEMPLE_HALL_URL) ||
-  '/temple-hall.webp';
+/**
+ * Ưu tiên ảnh Manus anh upload vào public/temple-hall.jpg
+ * Nếu chưa có → dùng ảnh chánh điện Phật (Pexels) để không bị nền đen.
+ */
+const LOCAL_IMG = '/temple-hall.jpg';
+const LOCAL_WEBP = '/temple-hall.webp';
+const LOCAL_CLEAN = '/temple-hall-clean.png';
+const REMOTE_TEMPLE =
+  'https://images.pexels.com/photos/34035030/pexels-photo-34035030.jpeg?auto=compress&cs=tinysrgb&w=1400';
 
-const TEMPLE_FALLBACK = '/temple-hall.jpg';
+const ENV_IMG =
+  typeof import.meta !== 'undefined'
+    ? (import.meta as any).env?.VITE_TEMPLE_HALL_URL
+    : undefined;
 
 const DEFAULT_TAGS = [
   { name: 'Thuý sa mạc', side: 'left' as const, x: '7%', y: '58%' },
@@ -49,7 +56,7 @@ export function LiveChinhDien({
   const [now, setNow] = useState(() =>
     new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
   );
-  const [bgUrl, setBgUrl] = useState(TEMPLE_IMAGE);
+  const [bgUrl, setBgUrl] = useState(ENV_IMG || REMOTE_TEMPLE);
 
   useEffect(() => {
     return subscribe(() => {
@@ -69,6 +76,37 @@ export function LiveChinhDien({
       );
     }, 30000);
     return () => window.clearInterval(t);
+  }, []);
+
+  // Thử lần lượt: env → local Manus → remote
+  useEffect(() => {
+    if (ENV_IMG) {
+      setBgUrl(ENV_IMG);
+      return;
+    }
+    let cancelled = false;
+    const tryUrl = (url: string) =>
+      new Promise<boolean>((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve(true);
+        img.onerror = () => resolve(false);
+        img.src = url;
+      });
+
+    (async () => {
+      for (const url of [LOCAL_IMG, LOCAL_WEBP, LOCAL_CLEAN, REMOTE_TEMPLE]) {
+        const ok = await tryUrl(url);
+        if (cancelled) return;
+        if (ok) {
+          setBgUrl(url);
+          return;
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const connected = liveStatus === 'connected';
@@ -98,12 +136,6 @@ export function LiveChinhDien({
         className="temple-stage"
         style={{ ['--temple-image' as string]: `url(${bgUrl})` }}
       >
-        <img
-          src={TEMPLE_IMAGE}
-          alt=""
-          hidden
-          onError={() => setBgUrl(TEMPLE_FALLBACK)}
-        />
         <div className="stage-vignette" />
 
         <header className="topbar">
@@ -225,37 +257,37 @@ export function LiveChinhDien({
             </span>
           </div>
         )}
-
-        <section className="control-dock">
-          <div className="dock-label">NGHI LỄ & TƯƠNG TÁC</div>
-          <div className="action-grid">
-            <button
-              type="button"
-              className="action-button action-button--incense"
-              onClick={() => onOffer?.('thap_huong', 'Dâng hương')}
-            >
-              <span className="action-button__icon">🕯️</span>
-              <span className="action-button__label">Dâng hương</span>
-            </button>
-            <button
-              type="button"
-              className="action-button action-button--blessing"
-              onClick={() => onOffer?.('tha_den', 'Cầu phúc')}
-            >
-              <span className="action-button__icon">☸️</span>
-              <span className="action-button__label">Cầu phúc</span>
-            </button>
-            <button
-              type="button"
-              className="action-button action-button--lotus"
-              onClick={() => onOffer?.('hoa_sen', 'Hoa sen')}
-            >
-              <span className="action-button__icon">🪷</span>
-              <span className="action-button__label">Hoa sen</span>
-            </button>
-          </div>
-        </section>
       </div>
+
+      <section className="control-dock" style={{ maxWidth: 520, margin: '0 auto' }}>
+        <div className="dock-label">NGHI LỄ & TƯƠNG TÁC</div>
+        <div className="action-grid">
+          <button
+            type="button"
+            className="action-button action-button--incense"
+            onClick={() => onOffer?.('thap_huong', 'Dâng hương')}
+          >
+            <span className="action-button__icon">🕯️</span>
+            <span className="action-button__label">Dâng hương</span>
+          </button>
+          <button
+            type="button"
+            className="action-button action-button--blessing"
+            onClick={() => onOffer?.('tha_den', 'Cầu phúc')}
+          >
+            <span className="action-button__icon">☸️</span>
+            <span className="action-button__label">Cầu phúc</span>
+          </button>
+          <button
+            type="button"
+            className="action-button action-button--lotus"
+            onClick={() => onOffer?.('hoa_sen', 'Hoa sen')}
+          >
+            <span className="action-button__icon">🪷</span>
+            <span className="action-button__label">Hoa sen</span>
+          </button>
+        </div>
+      </section>
     </div>
   );
 }
