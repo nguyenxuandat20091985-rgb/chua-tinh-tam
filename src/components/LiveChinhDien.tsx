@@ -153,6 +153,11 @@ export function LiveChinhDien({
           </div>
         </section>
 
+        <div className="incense-counter" aria-label="Tổng lượt dâng hương">
+          <span className="incense-counter__flame">♨</span>
+          <span><small>LƯỢT DÂNG HƯƠNG</small><strong>{stats.incenseOfferings.toLocaleString('vi-VN')}</strong></span>
+        </div>
+
         {tags.length > 0 && (
           <div className="live-name-tags" aria-label="Tên người đang tham dự">
             {tags.map((tag) => (

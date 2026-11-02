@@ -39,6 +39,7 @@ interface PersistedStore {
   logs: RitualLog[];
   incenseCount: number;
   totalMerit: number;
+  incenseOfferings?: number;
   liveMembers?: string[];
   seats?: Seat[];
   comments?: LiveComment[];
@@ -62,6 +63,7 @@ let ranking = new Map<string, number>(initial?.ranking ?? []);
 let logs: RitualLog[] = initial?.logs ?? [];
 let incenseCount = Math.max(0, Number(initial?.incenseCount) || 0);
 let totalMerit = Math.max(0, Number(initial?.totalMerit) || 0);
+let incenseOfferings = Math.max(0, Number(initial?.incenseOfferings) || 0);
 let liveMembers: string[] = initial?.liveMembers ?? [];
 let seats: Seat[] = releaseExpiredSeats(initial?.seats?.length ? initial.seats : createSeats());
 let liveComments: LiveComment[] = initial?.comments ?? [];
@@ -87,6 +89,7 @@ function persist() {
       logs: logs.slice(0, 80),
       incenseCount,
       totalMerit,
+      incenseOfferings,
       liveMembers: liveMembers.slice(0, 24),
       seats,
       comments: liveComments.slice(0, 30),
@@ -118,6 +121,11 @@ export function addMerit(name: string, points: number) {
 
 export function addIncense(n = 1) {
   incenseCount += n;
+  notify();
+}
+
+export function addIncenseOffering(n = 1) {
+  incenseOfferings += Math.max(0, n);
   notify();
 }
 
@@ -196,13 +204,14 @@ export function clearLiveMembers() {
 }
 
 export function getStats() {
-  return { incenseCount, totalMerit };
+  return { incenseCount, incenseOfferings, totalMerit };
 }
 
 export function resetMerit() {
   ranking = new Map();
   totalMerit = 0;
   incenseCount = 0;
+  incenseOfferings = 0;
   logs = [];
   notify();
 }

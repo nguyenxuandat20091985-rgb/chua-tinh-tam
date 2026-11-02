@@ -11,6 +11,7 @@ import {
 import {
   addMerit,
   addIncense,
+  addIncenseOffering,
   pushLog,
   getTopRanking,
   getLogs,
@@ -65,7 +66,10 @@ export function ControlPanel({ onRitual, onLiveStatus }: Props) {
   const applyResult = useCallback(
     (user: string, eventName: string, result: RuleResult) => {
       addMerit(user, result.merit);
-      if (result.ritual === 'thap_huong') addIncense(3);
+      if (result.ritual === 'thap_huong') {
+        addIncense(3);
+        addIncenseOffering(1);
+      }
       pushLog({
         user,
         event: eventName,
