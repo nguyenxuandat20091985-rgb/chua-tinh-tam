@@ -100,6 +100,7 @@ export function ControlPanel({ onRitual, onLiveStatus }: Props) {
     const onError = (data: { message: string }) => {
       setLiveError(data.message || 'Lỗi');
       setLiveStatus('disconnected');
+      onLiveStatus?.('disconnected');
     };
     const onChat = (data: { nickname: string; comment: string }) => {
       addLiveMember(data.nickname || 'Phật tử');
