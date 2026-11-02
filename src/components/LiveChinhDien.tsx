@@ -16,39 +16,26 @@ interface Props {
   onOffer?: (ritual: RitualId, label: string) => void;
 }
 
-/**
- * Ảnh nền chánh điện Phật (tượng vàng).
- * Đổi bằng VITE_TEMPLE_HALL_URL hoặc public/temple-hall.jpg để đúng ảnh Manus anh đã chốt.
- */
-const HALL_BG =
+/** Ảnh Manus – đặt file vào public/temple-hall.webp hoặc public/temple-hall.jpg */
+const TEMPLE_IMAGE =
   (typeof import.meta !== 'undefined' &&
     (import.meta as any).env?.VITE_TEMPLE_HALL_URL) ||
-  '/temple-hall.jpg';
+  '/temple-hall.webp';
 
-const HALL_BG_FALLBACK =
-  'https://images.pexels.com/photos/34035030/pexels-photo-34035030.jpeg?auto=compress&cs=tinysrgb&w=1400';
+const TEMPLE_FALLBACK = '/temple-hall.jpg';
 
-const FALLBACK_NAMES = [
-  'Thuý sa mạc',
-  'Anh Thu',
-  'Điện m',
-  'Yumi Dương',
-  'Tâm An',
-  'Chương Văn',
-  'Nguyễn Cao',
-  'Bot Đảm',
+const DEFAULT_TAGS = [
+  { name: 'Thuý sa mạc', side: 'left' as const, x: '7%', y: '58%' },
+  { name: 'Chương Văn', side: 'right' as const, x: '7%', y: '58%' },
+  { name: 'Anh Thu', side: 'left' as const, x: '17%', y: '64%' },
+  { name: 'Nguyễn Cao', side: 'right' as const, x: '17%', y: '64%' },
+  { name: 'Điện m', side: 'left' as const, x: '8%', y: '70%' },
+  { name: 'Bot Đảm', side: 'right' as const, x: '8%', y: '70%' },
+  { name: 'Yumi Dương', side: 'left' as const, x: '22%', y: '76%' },
+  { name: 'Tâm An', side: 'left' as const, x: '4%', y: '82%' },
 ];
 
-const TAG_SLOTS = [
-  { top: '58%', left: '6%' },
-  { top: '66%', left: '10%' },
-  { top: '74%', left: '8%' },
-  { top: '82%', left: '14%' },
-  { top: '70%', left: '18%' },
-  { top: '52%', right: '8%' },
-  { top: '62%', right: '6%' },
-  { top: '72%', right: '12%' },
-];
+const TONES = ['coral', 'gold', 'blue'] as const;
 
 export function LiveChinhDien({
   activeRitual,
@@ -56,12 +43,13 @@ export function LiveChinhDien({
   liveStatus,
   onOffer,
 }: Props) {
-  const [flash, setFlash] = useState(false);
   const [stats, setStats] = useState(getStats());
   const [ranking, setRanking] = useState(getTopRanking(3));
   const [members, setMembers] = useState(getLiveMembers());
-  const [now, setNow] = useState(() => formatTime(new Date()));
-  const [bg, setBg] = useState(HALL_BG);
+  const [now, setNow] = useState(() =>
+    new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+  );
+  const [bgUrl, setBgUrl] = useState(TEMPLE_IMAGE);
 
   useEffect(() => {
     return subscribe(() => {
@@ -72,52 +60,66 @@ export function LiveChinhDien({
   }, []);
 
   useEffect(() => {
-    const t = window.setInterval(() => setNow(formatTime(new Date())), 30_000);
+    const t = window.setInterval(() => {
+      setNow(
+        new Date().toLocaleTimeString('vi-VN', {
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+      );
+    }, 30000);
     return () => window.clearInterval(t);
   }, []);
 
-  useEffect(() => {
-    if (!activeRitual || activeRitual === 'none') return;
-    setFlash(true);
-    const timer = window.setTimeout(() => setFlash(false), 4000);
-    return () => window.clearTimeout(timer);
-  }, [activeRitual, ritualLabel]);
-
   const connected = liveStatus === 'connected';
-  const displayNames = useMemo(() => {
-    const live = members.filter(Boolean);
-    if (live.length > 0) return live.slice(0, 8);
-    return FALLBACK_NAMES;
+  const isOffline = !connected && liveStatus !== 'connecting';
+
+  const tags = useMemo(() => {
+    const live = members.filter(Boolean).slice(0, 8);
+    if (live.length === 0) return DEFAULT_TAGS;
+    return live.map((name, i) => {
+      const base = DEFAULT_TAGS[i % DEFAULT_TAGS.length];
+      return { ...base, name };
+    });
   }, [members]);
 
-  const peopleCount =
-    members.length > 0 ? members.length : connected ? 1248 : 0;
+  const peopleLabel =
+    members.length > 0
+      ? members.length.toLocaleString('vi-VN')
+      : connected
+        ? '1.248'
+        : '—';
+
+  const showRitual = activeRitual && activeRitual !== 'none';
 
   return (
-    <div className="lcd">
+    <div className={`temple-app ${isOffline ? 'is-offline' : 'is-live'}`}>
       <div
-        className={`lcd-stage ${flash ? 'is-ritual' : ''} ${connected ? 'is-live' : ''}`}
-        style={{ backgroundImage: `url(${bg})` }}
+        className="temple-stage"
+        style={{ ['--temple-image' as string]: `url(${bgUrl})` }}
       >
-        {/* preload + fallback nếu /temple-hall.jpg chưa có */}
         <img
-          src={HALL_BG}
+          src={TEMPLE_IMAGE}
           alt=""
           hidden
-          onError={() => setBg(HALL_BG_FALLBACK)}
-          onLoad={() => setBg(HALL_BG)}
+          onError={() => setBgUrl(TEMPLE_FALLBACK)}
         />
-        <div className="lcd-scrim" />
+        <div className="stage-vignette" />
 
-        <header className="lcd-top">
-          <div className="lcd-brand">
-            <span className="lcd-logo">🪷</span>
-            <div>
+        <header className="topbar">
+          <div className="brand-lockup">
+            <span className="brand-mark">🪷</span>
+            <span>
               <strong>CHÙA TỊNH TÂM</strong>
               <small>Pháp hội trực tuyến</small>
-            </div>
+            </span>
           </div>
-          <span className={`lcd-badge ${connected ? 'on' : ''}`}>
+          <span
+            className={`connection-badge ${
+              connected ? 'connection-badge--live' : ''
+            }`}
+          >
+            <span className="connection-dot" />
             {connected
               ? 'LIVE · PHÁP HỘI ĐANG MỞ'
               : liveStatus === 'connecting'
@@ -126,142 +128,134 @@ export function LiveChinhDien({
           </span>
         </header>
 
-        <div className="lcd-intro">
-          <div className="lcd-eyebrow">
-            <i className="dot" />
-            {connected ? 'ĐANG PHÁT TRỰC TIẾP' : 'PHIÊN TĨNH TÂM'} · {now}
+        <section className="live-meta" aria-label="Thông tin pháp hội">
+          <div className="live-meta__eyebrow">
+            <span className="live-dot" />{' '}
+            {connected ? 'ĐANG PHÁT TRỰC TIẾP' : 'PHIÊN TĨNH TÂM'}
+            <span className="live-meta__divider" />
+            <span>{now}</span>
           </div>
           <h1>
             Giữ một niệm lành
             <br />
             <em>cho hôm nay.</em>
           </h1>
-          <div className="lcd-pills">
-            <div className="pill">
-              <span className="pill-ico">📶</span>
-              <div>
+          <div className="live-stats">
+            <div className="stat-pill">
+              <span className="stat-pill__icon">📶</span>
+              <span>
                 <small>Người đang lễ</small>
-                <b>{peopleCount > 0 ? peopleCount.toLocaleString('vi-VN') : '—'}</b>
-              </div>
+                <strong>{peopleLabel}</strong>
+              </span>
             </div>
-            <div className="pill">
-              <span className="pill-ico">✨</span>
-              <div>
+            <div className="stat-pill">
+              <span className="stat-pill__icon">✨</span>
+              <span>
                 <small>Công đức</small>
-                <b>{stats.totalMerit.toLocaleString('vi-VN')}</b>
-              </div>
+                <strong>{stats.totalMerit.toLocaleString('vi-VN')}</strong>
+              </span>
             </div>
           </div>
+        </section>
+
+        <div className="live-name-tags" aria-label="Tên người đang tham dự">
+          {tags.map((tag) => (
+            <span
+              key={tag.name + tag.y}
+              className={`live-name-tag live-name-tag--${tag.side}`}
+              style={{ [tag.side]: tag.x, top: tag.y }}
+            >
+              <i />
+              {tag.name}
+            </span>
+          ))}
         </div>
 
-        <div className="lcd-tags" aria-label="Phật tử">
-          {displayNames.map((name, i) => {
-            const slot = TAG_SLOTS[i % TAG_SLOTS.length];
-            return (
-              <span
-                key={`${name}-${i}`}
-                className="tag"
-                style={{
-                  top: slot.top,
-                  left: (slot as { left?: string }).left,
-                  right: (slot as { right?: string }).right,
-                }}
-              >
-                <i />
-                {name}
-              </span>
-            );
-          })}
-        </div>
-
-        <aside className="lcd-rank">
-          <div className="rank-head">
-            <span>◆ TẤM LÒNG THÀNH</span>
+        <aside className="merit-card">
+          <div className="merit-card__header">
+            <span>
+              <i className="rank-medal">✦</i> TẤM LÒNG THÀNH
+            </span>
             <small>Hôm nay</small>
           </div>
-          {ranking.length === 0 && (
-            <p className="rank-empty">Chờ tấm lòng thành đầu tiên</p>
-          )}
-          {ranking.map((r, i) => (
-            <div className="rank-row" key={r.name}>
-              <span className={`av av-${i}`}>{r.name.slice(0, 1).toUpperCase()}</span>
-              <div className="rank-copy">
-                <strong>{r.name}</strong>
-                <small>
-                  {i === 0
-                    ? 'Dâng hương cầu an'
-                    : i === 1
-                      ? 'Xin hồi hướng'
-                      : 'Cầu nguyện bình an'}
-                </small>
+          <div className="merit-card__list">
+            {ranking.length === 0 && (
+              <p className="merit-empty">Chờ tấm lòng thành đầu tiên</p>
+            )}
+            {ranking.map((r, index) => (
+              <div className="merit-row" key={r.name}>
+                <span className={`merit-avatar merit-avatar--${TONES[index % 3]}`}>
+                  {r.name.slice(0, 1).toUpperCase()}
+                </span>
+                <span className="merit-row__copy">
+                  <strong>{r.name}</strong>
+                  <small>
+                    {index === 0
+                      ? 'Dâng hương cầu an'
+                      : index === 1
+                        ? 'Xin hồi hướng cha mẹ'
+                        : 'Cầu nguyện bình an'}
+                  </small>
+                </span>
+                <b>+{r.points}</b>
               </div>
-              <b>+{r.points}</b>
-            </div>
-          ))}
-          <div className="rank-foot">
+            ))}
+          </div>
+          <div className="merit-card__foot">
             <span>Hồi hướng bình an</span>
-            <strong>{stats.incenseCount.toLocaleString('vi-VN')} hương</strong>
+            <strong>
+              {stats.incenseCount.toLocaleString('vi-VN')}{' '}
+              <small>hương</small>
+            </strong>
           </div>
         </aside>
 
-        {flash && activeRitual && activeRitual !== 'none' && (
-          <div className="lcd-ritual">
-            <span className="ritual-ico">{ritualEmoji(activeRitual)}</span>
-            <div>
+        {showRitual && (
+          <div className="ritual-banner">
+            <span className="ritual-banner__icon">
+              {activeRitual === 'thap_huong'
+                ? '🕯️'
+                : activeRitual === 'hoa_sen'
+                  ? '🪷'
+                  : '✨'}
+            </span>
+            <span>
               <small>NGHI THỨC ĐANG DIỄN RA</small>
-              <strong>{ritualLabel || RITUAL_LABELS[activeRitual]}</strong>
-            </div>
+              <strong>{ritualLabel || RITUAL_LABELS[activeRitual!]}</strong>
+            </span>
           </div>
         )}
-      </div>
 
-      <div className="lcd-dock">
-        <div className="dock-label">NGHI LỄ & TƯƠNG TÁC</div>
-        <div className="dock-grid">
-          <button
-            type="button"
-            className="dock-btn"
-            onClick={() => onOffer?.('thap_huong', 'Dâng hương')}
-          >
-            <span className="dock-ico">🕯️</span>
-            <b>Dâng hương</b>
-          </button>
-          <button
-            type="button"
-            className="dock-btn"
-            onClick={() => onOffer?.('tha_den', 'Cầu phúc')}
-          >
-            <span className="dock-ico">☸️</span>
-            <b>Cầu phúc</b>
-          </button>
-          <button
-            type="button"
-            className="dock-btn accent"
-            onClick={() => onOffer?.('hoa_sen', 'Hoa sen')}
-          >
-            <span className="dock-ico">🪷</span>
-            <b>Hoa sen</b>
-          </button>
-        </div>
+        <section className="control-dock">
+          <div className="dock-label">NGHI LỄ & TƯƠNG TÁC</div>
+          <div className="action-grid">
+            <button
+              type="button"
+              className="action-button action-button--incense"
+              onClick={() => onOffer?.('thap_huong', 'Dâng hương')}
+            >
+              <span className="action-button__icon">🕯️</span>
+              <span className="action-button__label">Dâng hương</span>
+            </button>
+            <button
+              type="button"
+              className="action-button action-button--blessing"
+              onClick={() => onOffer?.('tha_den', 'Cầu phúc')}
+            >
+              <span className="action-button__icon">☸️</span>
+              <span className="action-button__label">Cầu phúc</span>
+            </button>
+            <button
+              type="button"
+              className="action-button action-button--lotus"
+              onClick={() => onOffer?.('hoa_sen', 'Hoa sen')}
+            >
+              <span className="action-button__icon">🪷</span>
+              <span className="action-button__label">Hoa sen</span>
+            </button>
+          </div>
+        </section>
       </div>
     </div>
   );
-}
-
-function formatTime(d: Date) {
-  return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-}
-
-function ritualEmoji(r: RitualId) {
-  const map: Record<string, string> = {
-    go_mo: '🥁',
-    thinh_chuong: '🔔',
-    thap_huong: '🕯️',
-    tha_den: '🏮',
-    xin_xam: '📜',
-    dang_mam: '🍎',
-    hoa_sen: '🪷',
-    dai_le_kim_long: '🐉',
-  };
-  return map[r] || '✨';
 }
