@@ -12,6 +12,7 @@ export default function App() {
   const [tab, setTab] = useState<'live' | 'tour360'>('live');
   const [activeRitual, setActiveRitual] = useState<RitualId | null>(null);
   const [ritualLabel, setRitualLabel] = useState('');
+  const [liveStatus, setLiveStatus] = useState<'idle' | 'connecting' | 'connected' | 'disconnected' | 'ended'>('idle');
 
   return (
     <div className="app">
@@ -45,10 +46,11 @@ export default function App() {
         {tab === 'live' && (
           <div className="live-layout">
             <div className="col-temple">
-              <TempleView activeRitual={activeRitual} ritualLabel={ritualLabel} />
+              <TempleView activeRitual={activeRitual} ritualLabel={ritualLabel} liveStatus={liveStatus} />
             </div>
             <div className="col-panel">
               <ControlPanel
+                onLiveStatus={setLiveStatus}
                 onRitual={(ritual, label) => {
                   setActiveRitual(ritual);
                   setRitualLabel(label);
