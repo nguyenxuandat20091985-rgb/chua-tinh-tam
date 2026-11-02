@@ -128,17 +128,6 @@ io.on('connection', (socket) => {
       socket.emit('tiktok:member', emitUser(data));
     });
 
-    // PirateTok reports connection state through events. Do not wait for
-    // connect() to resolve: some versions keep its promise pending while the
-    // reconnect loop is active.
-    tiktok.on(EventType.connected, (data) => {
-      socket.emit('tiktok:status', {
-        status: 'connected',
-        uniqueId,
-        roomId: data?.roomId,
-      });
-    });
-
     tiktok.on(EventType.liveEnded, () => {
       socket.emit('tiktok:status', { status: 'ended', uniqueId });
       if (connections.get(socket.id) === tiktok) connections.delete(socket.id);
@@ -166,16 +155,22 @@ io.on('connection', (socket) => {
       });
     });
 
-    // Start the connection in the background. The connected/disconnected
-    // events above are the source of truth for UI state.
-    void tiktok.connect().catch((err) => {
-      console.error('[TikTok] connect error', err?.message || err);
-      if (connections.get(socket.id) === tiktok) connections.delete(socket.id);
-      socket.emit('tiktok:error', {
-        message: err?.message || 'Không kết nối được. Kiểm tra username đang LIVE và thử lại.',
+    // PirateTok 0.3.x resolves connect() only after the WSS handshake succeeds;
+    // reconnecting/disconnected events then report subsequent stream state.
+    void tiktok.connect()
+      .then((roomId) => {
+        if (connections.get(socket.id) !== tiktok) return;
+        console.log('[TikTok] connected', uniqueId, 'roomId', roomId);
+        socket.emit('tiktok:status', { status: 'connected', uniqueId, roomId });
+      })
+      .catch((err) => {
+        console.error('[TikTok] connect error', err?.message || err);
+        if (connections.get(socket.id) === tiktok) connections.delete(socket.id);
+        socket.emit('tiktok:error', {
+          message: err?.message || 'Không kết nối được. Kiểm tra username đang LIVE và thử lại.',
+        });
+        socket.emit('tiktok:status', { status: 'disconnected', uniqueId });
       });
-      socket.emit('tiktok:status', { status: 'disconnected', uniqueId });
-    });
   });
 
   socket.on('tiktok:disconnect', async () => {
