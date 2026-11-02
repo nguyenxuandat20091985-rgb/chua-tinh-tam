@@ -36,7 +36,6 @@ export function ControlPanel({ onRitual }: Props) {
   const [logs, setLogs] = useState(getLogs());
   const [stats, setStats] = useState(getStats());
   const [ttsOn, setTtsOn] = useState(true);
-  const [bgVol, setBgVol] = useState(80);
   const [voiceVol, setVoiceVol] = useState(85);
   const [lastRitual, setLastRitual] = useState('');
   const [liveChat, setLiveChat] = useState<{ name: string; text: string }[]>([]);
@@ -65,10 +64,10 @@ export function ControlPanel({ onRitual }: Props) {
       setLastRitual(RITUAL_LABELS[result.ritual]);
       onRitual?.(result.ritual, RITUAL_LABELS[result.ritual]);
       if (ttsOn) {
-        speak(`${user}. ${RITUAL_LABELS[result.ritual]}. Cộng ${result.merit} công đức.`);
+        speak(`${user}. ${RITUAL_LABELS[result.ritual]}. Cộng ${result.merit} công đức.`, 'vi-VN', voiceVol / 100);
       }
     },
-    [onRitual, ttsOn]
+    [onRitual, ttsOn, voiceVol]
   );
 
   useEffect(() => {
@@ -156,11 +155,7 @@ export function ControlPanel({ onRitual }: Props) {
           </button>
         </div>
         <label className="slider-label">
-          Nhạc nền {bgVol}%
-          <input type="range" min={0} max={100} value={bgVol} onChange={(e) => setBgVol(+e.target.value)} />
-        </label>
-        <label className="slider-label">
-          Giọng đọc {voiceVol}%
+          Âm lượng giọng đọc {voiceVol}%
           <input type="range" min={0} max={100} value={voiceVol} onChange={(e) => setVoiceVol(+e.target.value)} />
         </label>
       </section>
