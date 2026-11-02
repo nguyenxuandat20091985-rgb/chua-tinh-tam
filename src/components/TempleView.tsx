@@ -1,28 +1,24 @@
 import { useEffect, useState } from 'react';
 import type { RitualId } from '../lib/rules';
 import { RITUAL_LABELS } from '../lib/rules';
-import { getStats, getTopRanking, subscribe } from '../lib/store';
+import { getStats, getTopRanking, getLiveMembers, subscribe } from '../lib/store';
 
 interface Props {
   activeRitual: RitualId | null;
   ritualLabel: string;
 }
 
-const SAMPLE_NAMES = [
-  'Tiến Trưởng', 'Anh Thơ', 'Nguyễn', 'Lương', 'Tuấn',
-  'Minh', 'Hạnh', 'Lan', 'Quỳnh', 'Hùng',
-  'Mai', 'Đức', 'Phúc', 'An', 'Tâm',
-];
-
 export function TempleView({ activeRitual, ritualLabel }: Props) {
   const [flash, setFlash] = useState(false);
   const [stats, setStats] = useState(getStats());
   const [ranking, setRanking] = useState(getTopRanking(5));
+  const [members, setMembers] = useState(getLiveMembers());
 
   useEffect(() => {
     return subscribe(() => {
       setStats(getStats());
       setRanking(getTopRanking(5));
+      setMembers(getLiveMembers());
     });
   }, []);
 
@@ -36,7 +32,7 @@ export function TempleView({ activeRitual, ritualLabel }: Props) {
   return (
     <div className="tv">
       {/* Phone-frame style temple */}
-      <div className={`hall ${flash ? 'ritual-on' : ''}`}>
+      <div className={`hall ${flash ? 'ritual-on' : ''} ${flash && activeRitual ? `ritual-${activeRitual}` : ''}`}>
         {/* Top status */}
         <div className="hall-top">
           <span className="live-badge">LIVE</span>
@@ -48,6 +44,7 @@ export function TempleView({ activeRitual, ritualLabel }: Props) {
         {/* Golden Buddha zone */}
         <div className="altar">
           <div className="rays" />
+          {flash && activeRitual && <div className={`ritual-aura ${activeRitual}`} aria-hidden="true" />}
           <div className="buddha-wrap">
             <div className="buddha">Buddha</div>
             <div className="lotus-throne" />
@@ -64,7 +61,7 @@ export function TempleView({ activeRitual, ritualLabel }: Props) {
         <div className="nave">
           <div className="carpet" />
           <div className="crowd">
-            {SAMPLE_NAMES.map((name, i) => (
+            {members.map((name, i) => (
               <div
                 key={name + i}
                 className={`person ${flash ? 'bow' : ''}`}
@@ -74,6 +71,7 @@ export function TempleView({ activeRitual, ritualLabel }: Props) {
                 <span className="body">🙇</span>
               </div>
             ))}
+            {members.length === 0 && <div className="muted" style={{ width: '100%', textAlign: 'center' }}>Chưa có Phật tử tương tác trong LIVE</div>}
           </div>
         </div>
 
@@ -112,6 +110,85 @@ export function TempleView({ activeRitual, ritualLabel }: Props) {
         }
         .hall.ritual-on {
           box-shadow: 0 0 50px rgba(255, 215, 0, 0.35);
+        }
+        /* Lightweight temple architecture: roof tiers, columns and altar depth */
+        .hall::before {
+          content: '';
+          position: absolute;
+          z-index: 0;
+          top: 42px;
+          left: 7%;
+          right: 7%;
+          height: 34px;
+          border-top: 5px solid rgba(226, 184, 78, .72);
+          border-bottom: 2px solid rgba(226, 184, 78, .35);
+          border-radius: 50% 50% 8px 8px / 100% 100% 8px 8px;
+          background: linear-gradient(180deg, rgba(111, 35, 27, .7), rgba(34, 16, 10, .12));
+          box-shadow: 0 8px 18px rgba(0,0,0,.25);
+          pointer-events: none;
+        }
+        .hall::after {
+          content: '';
+          position: absolute;
+          z-index: 0;
+          top: 76px;
+          bottom: 110px;
+          left: 5%;
+          right: 5%;
+          border-left: 8px solid rgba(190, 135, 54, .16);
+          border-right: 8px solid rgba(190, 135, 54, .16);
+          pointer-events: none;
+        }
+        .altar { isolation: isolate; }
+        .ritual-aura {
+          position: absolute;
+          z-index: 2;
+          left: 50%;
+          top: 44%;
+          transform: translate(-50%, -50%);
+          width: 150px;
+          height: 150px;
+          display: grid;
+          place-items: center;
+          pointer-events: none;
+          font-size: 3rem;
+          filter: drop-shadow(0 0 16px rgba(255, 210, 90, .8));
+        }
+        .ritual-aura::before { content: ''; animation: ritual-emerge 1.8s ease-out infinite; }
+        .ritual-aura.thap_huong::before { content: '〰️'; font-size: 3.6rem; opacity: .7; }
+        .ritual-aura.go_mo::before { content: '🥁'; }
+        .ritual-aura.thinh_chuong::before { content: '🔔'; animation: bell-swing .7s ease-in-out infinite; }
+        .ritual-aura.tha_den::before { content: '🏮'; animation: lantern-rise 2.2s ease-in-out infinite; }
+        .ritual-aura.hoa_sen::before { content: '🪷'; animation: lotus-open 1.4s ease-in-out infinite; }
+        .ritual-aura.dai_le_kim_long::before { content: '✨'; font-size: 4.4rem; }
+        .ritual-aura.xin_xam::before { content: '📜'; }
+        @keyframes ritual-emerge {
+          0% { transform: translateY(14px) scale(.7); opacity: 0; }
+          45% { opacity: 1; }
+          100% { transform: translateY(-24px) scale(1.15); opacity: 0; }
+        }
+        @keyframes bell-swing {
+          0%, 100% { transform: rotate(-14deg); }
+          50% { transform: rotate(14deg); }
+        }
+        @keyframes lantern-rise {
+          0%, 100% { transform: translateY(12px); }
+          50% { transform: translateY(-18px); }
+        }
+        @keyframes lotus-open {
+          0%, 100% { transform: scale(.82); }
+          50% { transform: scale(1.18); }
+        }
+        .hall.ritual-go_mo .lotus-throne { animation: drum-pulse .28s ease-in-out 5; }
+        .hall.ritual-thinh_chuong .rays { animation: bell-glow .7s ease-out 3; }
+        .hall.ritual-tha_den .ritual-pop { animation: lantern-rise 2.2s ease-in-out infinite; }
+        @keyframes drum-pulse {
+          0%, 100% { transform: scaleX(1); }
+          50% { transform: scaleX(1.08); }
+        }
+        @keyframes bell-glow {
+          0% { opacity: .5; transform: translateX(-50%) scale(.85); }
+          100% { opacity: 1; transform: translateX(-50%) scale(1.25); }
         }
         .hall-top {
           display: flex;

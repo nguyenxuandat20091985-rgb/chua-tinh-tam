@@ -2,13 +2,13 @@ import { io, Socket } from 'socket.io-client';
 
 let socket: Socket | null = null;
 
+// In Vite development, the Socket.IO server always runs on port 3001.
+// In production, frontend and Socket.IO are served from the same origin.
 const SERVER_URL =
   import.meta.env.VITE_TIKTOK_SERVER_URL ||
-  (typeof window !== 'undefined'
-    ? window.location.port === '3000'
-      ? `${window.location.protocol}//${window.location.hostname}:3001`
-      : window.location.origin
-    : 'http://localhost:3001');
+  (import.meta.env.DEV
+    ? `${window.location.protocol}//${window.location.hostname}:3001`
+    : window.location.origin);
 
 export function getSocket(): Socket {
   if (!socket) {

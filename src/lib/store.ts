@@ -22,6 +22,7 @@ interface PersistedStore {
   logs: RitualLog[];
   incenseCount: number;
   totalMerit: number;
+  liveMembers?: string[];
 }
 
 function loadStore(): PersistedStore | null {
@@ -42,6 +43,7 @@ let ranking = new Map<string, number>(initial?.ranking ?? []);
 let logs: RitualLog[] = initial?.logs ?? [];
 let incenseCount = Math.max(0, Number(initial?.incenseCount) || 0);
 let totalMerit = Math.max(0, Number(initial?.totalMerit) || 0);
+let liveMembers: string[] = initial?.liveMembers ?? [];
 
 const listeners = new Set<() => void>();
 
@@ -53,6 +55,7 @@ function persist() {
       logs: logs.slice(0, 80),
       incenseCount,
       totalMerit,
+      liveMembers: liveMembers.slice(0, 24),
     };
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(value));
   } catch {
@@ -101,6 +104,23 @@ export function getTopRanking(limit = 10): MeritEntry[] {
 
 export function getLogs() {
   return logs;
+}
+
+export function addLiveMember(name: string) {
+  const cleanName = name.trim();
+  if (!cleanName || cleanName === 'undefined') return;
+  liveMembers = [cleanName, ...liveMembers.filter((item) => item !== cleanName)].slice(0, 24);
+  notify();
+}
+
+export function getLiveMembers() {
+  return liveMembers;
+}
+
+export function clearLiveMembers() {
+  if (liveMembers.length === 0) return;
+  liveMembers = [];
+  notify();
 }
 
 export function getStats() {

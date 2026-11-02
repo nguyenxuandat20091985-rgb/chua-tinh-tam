@@ -6,6 +6,7 @@ import type { RitualId } from './lib/rules';
 
 const DEMO_PANO =
   'https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Equirectangular_projection_SW.jpg/1280px-Equirectangular_projection_SW.jpg';
+const TEMPLE_PANORAMA_URL = import.meta.env.VITE_TEMPLE_PANORAMA_URL || DEMO_PANO;
 
 export default function App() {
   const [tab, setTab] = useState<'live' | 'tour360'>('live');
@@ -60,7 +61,7 @@ export default function App() {
         {tab === 'tour360' && (
           <div className="tour-wrap">
             <VirtualTour360
-              panoramaUrl={DEMO_PANO}
+              panoramaUrl={TEMPLE_PANORAMA_URL}
               title="Chánh điện Chùa Tịnh Tâm – 360°"
               description="Kéo / vuốt để nhìn quanh. Thay panoramaUrl bằng ảnh/video 360 của chùa."
             />

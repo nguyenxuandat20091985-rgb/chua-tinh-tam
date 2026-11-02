@@ -16,6 +16,8 @@ import {
   getLogs,
   getStats,
   resetMerit,
+  addLiveMember,
+  clearLiveMembers,
   subscribe,
 } from '../lib/store';
 import { speak } from '../lib/tts';
@@ -73,6 +75,7 @@ export function ControlPanel({ onRitual }: Props) {
   useEffect(() => {
     const s = getSocket();
     const onStatus = (data: { status: string }) => {
+      if (data.status === 'connecting' || data.status === 'disconnected' || data.status === 'ended') clearLiveMembers();
       setLiveStatus(data.status as typeof liveStatus);
       if (data.status === 'connected') setLiveError('');
     };
@@ -81,18 +84,22 @@ export function ControlPanel({ onRitual }: Props) {
       setLiveStatus('disconnected');
     };
     const onChat = (data: { nickname: string; comment: string }) => {
+      addLiveMember(data.nickname || 'Phật tử');
       setLiveChat((p) => [{ name: data.nickname, text: data.comment }, ...p].slice(0, 25));
       const result = processComment(data.comment);
       if (result) applyResult(data.nickname, `Live: ${data.comment.slice(0, 36)}`, result);
     };
     const onGift = (data: { nickname: string; giftName: string; totalXu: number }) => {
+      addLiveMember(data.nickname || 'Phật tử');
       applyResult(data.nickname, `Quà: ${data.giftName}`, processGift(data.totalXu || 1));
     };
     const onLike = (data: { nickname: string; likeCount: number }) => {
+      addLiveMember(data.nickname || 'Phật tử');
       const n = Math.min(data.likeCount || 1, 15);
       for (let i = 0; i < n; i++) applyResult(data.nickname, 'Tim Live', processLike());
     };
     const onSocial = (data: { nickname: string; action: string }) => {
+      addLiveMember(data.nickname || 'Phật tử');
       applyResult(
         data.nickname,
         data.action === 'follow' ? 'Follow' : 'Share',
@@ -105,6 +112,8 @@ export function ControlPanel({ onRitual }: Props) {
     s.on('tiktok:gift', onGift);
     s.on('tiktok:like', onLike);
     s.on('tiktok:social', onSocial);
+    const onMember = (data: { nickname: string }) => addLiveMember(data.nickname || 'Phật tử');
+    s.on('tiktok:member', onMember);
     return () => {
       s.off('tiktok:status', onStatus);
       s.off('tiktok:error', onError);
@@ -112,6 +121,7 @@ export function ControlPanel({ onRitual }: Props) {
       s.off('tiktok:gift', onGift);
       s.off('tiktok:like', onLike);
       s.off('tiktok:social', onSocial);
+      s.off('tiktok:member', onMember);
     };
   }, [applyResult]);
 
