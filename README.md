@@ -7,7 +7,18 @@
 - npm
 - Tài khoản TikTok đang phát LIVE nếu muốn thử kết nối LIVE thật
 
-## Chạy trên máy tính
+## Chạy trên máy tính (khuyến nghị: một lệnh)
+
+Mở Terminal / PowerShell tại thư mục dự án:
+
+\`\`\`bash
+npm install
+npm run dev:all
+\`\`\`
+
+Sau khi thấy hai tiến trình khởi động, mở http://localhost:3000. Máy chủ TikTok Socket.IO chạy tại cổng 3001. Nhấn Ctrl+C để dừng cả hai tiến trình.
+
+### Cách chạy riêng bằng hai Terminal
 
 Mở Terminal tại thư mục dự án.
 
