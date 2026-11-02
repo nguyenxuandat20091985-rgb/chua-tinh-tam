@@ -9,7 +9,7 @@ const SERVER_URL =
   import.meta.env.VITE_TIKTOK_SERVER_URL ||
   (import.meta.env.DEV
     ? `${window.location.protocol}//${window.location.hostname}:3001`
-    : window.location.origin);
+    : 'https://chua-tinh-tam-live.onrender.com');
 
 export function getSocket(): Socket {
   if (!socket) {

@@ -7,6 +7,10 @@ Pháp hội trực tuyến + TikTok LIVE (nghi thức, công đức, overlay).
 - Web: https://chua-tinh-tam.vercel.app
 - Repo: https://github.com/nguyenxuandat20091985-rgb/chua-tinh-tam
 
+## Backend TikTok LIVE miễn phí
+
+Frontend chạy trên Vercel; kết nối TikTok LIVE cần server Node/Socket.IO riêng. Repository có `render.yaml` để tạo backend Render Free tại Singapore. Tạo Blueprint từ repository này trên Render; health check là `/health`. Frontend production kết nối tự động tới `https://chua-tinh-tam-live.onrender.com` (có thể ghi đè bằng `VITE_TIKTOK_SERVER_URL`). Render Free ngủ sau 15 phút không có traffic và thường cần khoảng một phút để thức dậy; heartbeat từ Socket.IO khi trang đang mở giữ dịch vụ hoạt động. Gói miễn phí không bảo đảm uptime liên tục.
+
 ## Hai phần
 
 ### 1. Web app (repo này)
