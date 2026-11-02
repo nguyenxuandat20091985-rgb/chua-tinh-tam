@@ -16,11 +16,17 @@ interface Props {
   onOffer?: (ritual: RitualId, label: string) => void;
 }
 
-/** Ảnh nền chánh điện thật – có thể đổi bằng VITE_TEMPLE_HALL_URL */
+/**
+ * Ảnh nền chánh điện Phật (tượng vàng).
+ * Đổi bằng VITE_TEMPLE_HALL_URL hoặc public/temple-hall.jpg để đúng ảnh Manus anh đã chốt.
+ */
 const HALL_BG =
   (typeof import.meta !== 'undefined' &&
     (import.meta as any).env?.VITE_TEMPLE_HALL_URL) ||
-  'https://images.unsplash.com/photo-1605649487212-47bdab064df7?auto=format&fit=crop&w=1400&q=80';
+  '/temple-hall.jpg';
+
+const HALL_BG_FALLBACK =
+  'https://images.pexels.com/photos/34035030/pexels-photo-34035030.jpeg?auto=compress&cs=tinysrgb&w=1400';
 
 const FALLBACK_NAMES = [
   'Thuý sa mạc',
@@ -55,6 +61,7 @@ export function LiveChinhDien({
   const [ranking, setRanking] = useState(getTopRanking(3));
   const [members, setMembers] = useState(getLiveMembers());
   const [now, setNow] = useState(() => formatTime(new Date()));
+  const [bg, setBg] = useState(HALL_BG);
 
   useEffect(() => {
     return subscribe(() => {
@@ -84,21 +91,24 @@ export function LiveChinhDien({
   }, [members]);
 
   const peopleCount =
-    members.length > 0
-      ? members.length
-      : connected
-        ? 1248
-        : 0;
+    members.length > 0 ? members.length : connected ? 1248 : 0;
 
   return (
     <div className="lcd">
       <div
         className={`lcd-stage ${flash ? 'is-ritual' : ''} ${connected ? 'is-live' : ''}`}
-        style={{ backgroundImage: `url(${HALL_BG})` }}
+        style={{ backgroundImage: `url(${bg})` }}
       >
+        {/* preload + fallback nếu /temple-hall.jpg chưa có */}
+        <img
+          src={HALL_BG}
+          alt=""
+          hidden
+          onError={() => setBg(HALL_BG_FALLBACK)}
+          onLoad={() => setBg(HALL_BG)}
+        />
         <div className="lcd-scrim" />
 
-        {/* Top bar */}
         <header className="lcd-top">
           <div className="lcd-brand">
             <span className="lcd-logo">🪷</span>
@@ -108,11 +118,14 @@ export function LiveChinhDien({
             </div>
           </div>
           <span className={`lcd-badge ${connected ? 'on' : ''}`}>
-            {connected ? 'LIVE · PHÁP HỘI ĐANG MỞ' : liveStatus === 'connecting' ? 'ĐANG KẾT NỐI…' : 'CHƯA KẾT NỐI'}
+            {connected
+              ? 'LIVE · PHÁP HỘI ĐANG MỞ'
+              : liveStatus === 'connecting'
+                ? 'ĐANG KẾT NỐI…'
+                : 'CHƯA KẾT NỐI'}
           </span>
         </header>
 
-        {/* Intro */}
         <div className="lcd-intro">
           <div className="lcd-eyebrow">
             <i className="dot" />
@@ -141,7 +154,6 @@ export function LiveChinhDien({
           </div>
         </div>
 
-        {/* Name tags overlay */}
         <div className="lcd-tags" aria-label="Phật tử">
           {displayNames.map((name, i) => {
             const slot = TAG_SLOTS[i % TAG_SLOTS.length];
@@ -151,7 +163,7 @@ export function LiveChinhDien({
                 className="tag"
                 style={{
                   top: slot.top,
-                  left: slot.left,
+                  left: (slot as { left?: string }).left,
                   right: (slot as { right?: string }).right,
                 }}
               >
@@ -162,7 +174,6 @@ export function LiveChinhDien({
           })}
         </div>
 
-        {/* Ranking card */}
         <aside className="lcd-rank">
           <div className="rank-head">
             <span>◆ TẤM LÒNG THÀNH</span>
@@ -176,7 +187,13 @@ export function LiveChinhDien({
               <span className={`av av-${i}`}>{r.name.slice(0, 1).toUpperCase()}</span>
               <div className="rank-copy">
                 <strong>{r.name}</strong>
-                <small>{i === 0 ? 'Dâng hương cầu an' : i === 1 ? 'Xin hồi hướng' : 'Cầu nguyện bình an'}</small>
+                <small>
+                  {i === 0
+                    ? 'Dâng hương cầu an'
+                    : i === 1
+                      ? 'Xin hồi hướng'
+                      : 'Cầu nguyện bình an'}
+                </small>
               </div>
               <b>+{r.points}</b>
             </div>
@@ -187,7 +204,6 @@ export function LiveChinhDien({
           </div>
         </aside>
 
-        {/* Ritual banner */}
         {flash && activeRitual && activeRitual !== 'none' && (
           <div className="lcd-ritual">
             <span className="ritual-ico">{ritualEmoji(activeRitual)}</span>
@@ -199,7 +215,6 @@ export function LiveChinhDien({
         )}
       </div>
 
-      {/* Bottom actions */}
       <div className="lcd-dock">
         <div className="dock-label">NGHI LỄ & TƯƠNG TÁC</div>
         <div className="dock-grid">
