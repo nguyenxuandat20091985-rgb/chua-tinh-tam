@@ -16,21 +16,22 @@ interface Props {
   onOffer?: (ritual: RitualId, label: string) => void;
 }
 
-/** Ảnh chánh điện từ bản Chánh Điện Tịnh Tâm (kentjuno) — đã có thảm + chiều sâu */
+/** Ảnh chánh điện — bản Chánh Điện Tịnh Tâm */
 const HALL_IMG =
   (typeof import.meta !== 'undefined' &&
     (import.meta as any).env?.VITE_TEMPLE_HALL_URL) ||
   'https://raw.githubusercontent.com/kentjuno/chanh-dien-online/main/assets/hall.jpg';
 
-const DEFAULT_TAGS = [
-  { name: 'Thuý sa mạc', side: 'left' as const, x: '6%', y: '55%' },
-  { name: 'Chương Văn', side: 'right' as const, x: '6%', y: '55%' },
-  { name: 'Anh Thu', side: 'left' as const, x: '14%', y: '62%' },
-  { name: 'Nguyễn Cao', side: 'right' as const, x: '14%', y: '62%' },
-  { name: 'Điện m', side: 'left' as const, x: '8%', y: '70%' },
-  { name: 'Bot Đảm', side: 'right' as const, x: '8%', y: '70%' },
-  { name: 'Yumi Dương', side: 'left' as const, x: '18%', y: '76%' },
-  { name: 'Tâm An', side: 'left' as const, x: '5%', y: '82%' },
+/** Vị trí tag — chỉ dùng khi đã có người LIVE thật */
+const TAG_SLOTS = [
+  { side: 'left' as const, x: '6%', y: '55%' },
+  { side: 'right' as const, x: '6%', y: '55%' },
+  { side: 'left' as const, x: '14%', y: '62%' },
+  { side: 'right' as const, x: '14%', y: '62%' },
+  { side: 'left' as const, x: '8%', y: '70%' },
+  { side: 'right' as const, x: '8%', y: '70%' },
+  { side: 'left' as const, x: '18%', y: '76%' },
+  { side: 'left' as const, x: '5%', y: '82%' },
 ];
 
 const TONES = ['coral', 'gold', 'blue'] as const;
@@ -71,21 +72,20 @@ export function LiveChinhDien({
   const connected = liveStatus === 'connected';
   const isOffline = !connected && liveStatus !== 'connecting';
 
+  // Chỉ hiện name tag khi ĐÃ kết nối LIVE và có người thật — không bịa tên
   const tags = useMemo(() => {
+    if (!connected) return [];
     const live = members.filter(Boolean).slice(0, 8);
-    if (live.length === 0) return DEFAULT_TAGS;
     return live.map((name, i) => {
-      const base = DEFAULT_TAGS[i % DEFAULT_TAGS.length];
-      return { ...base, name };
+      const slot = TAG_SLOTS[i % TAG_SLOTS.length];
+      return { name, ...slot };
     });
-  }, [members]);
+  }, [connected, members]);
 
   const peopleLabel =
     members.length > 0
       ? members.length.toLocaleString('vi-VN')
-      : connected
-        ? '1.248'
-        : '—';
+      : '—';
 
   const showRitual = activeRitual && activeRitual !== 'none';
 
@@ -149,18 +149,20 @@ export function LiveChinhDien({
           </div>
         </section>
 
-        <div className="live-name-tags" aria-label="Tên người đang tham dự">
-          {tags.map((tag) => (
-            <span
-              key={tag.name + tag.y}
-              className={`live-name-tag live-name-tag--${tag.side}`}
-              style={{ [tag.side]: tag.x, top: tag.y }}
-            >
-              <i />
-              {tag.name}
-            </span>
-          ))}
-        </div>
+        {tags.length > 0 && (
+          <div className="live-name-tags" aria-label="Tên người đang tham dự">
+            {tags.map((tag) => (
+              <span
+                key={tag.name + tag.y + tag.x}
+                className={`live-name-tag live-name-tag--${tag.side}`}
+                style={{ [tag.side]: tag.x, top: tag.y }}
+              >
+                <i />
+                {tag.name}
+              </span>
+            ))}
+          </div>
+        )}
 
         <aside className="merit-card">
           <div className="merit-card__header">
