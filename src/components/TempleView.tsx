@@ -1,28 +1,24 @@
 import { useEffect, useState } from 'react';
 import type { RitualId } from '../lib/rules';
 import { RITUAL_LABELS } from '../lib/rules';
-import { getStats, getTopRanking, subscribe } from '../lib/store';
+import { getStats, getTopRanking, getLiveMembers, subscribe } from '../lib/store';
 
 interface Props {
   activeRitual: RitualId | null;
   ritualLabel: string;
 }
 
-const SAMPLE_NAMES = [
-  'Tiến Trưởng', 'Anh Thơ', 'Nguyễn', 'Lương', 'Tuấn',
-  'Minh', 'Hạnh', 'Lan', 'Quỳnh', 'Hùng',
-  'Mai', 'Đức', 'Phúc', 'An', 'Tâm',
-];
-
 export function TempleView({ activeRitual, ritualLabel }: Props) {
   const [flash, setFlash] = useState(false);
   const [stats, setStats] = useState(getStats());
   const [ranking, setRanking] = useState(getTopRanking(5));
+  const [members, setMembers] = useState(getLiveMembers());
 
   useEffect(() => {
     return subscribe(() => {
       setStats(getStats());
       setRanking(getTopRanking(5));
+      setMembers(getLiveMembers());
     });
   }, []);
 
@@ -64,7 +60,7 @@ export function TempleView({ activeRitual, ritualLabel }: Props) {
         <div className="nave">
           <div className="carpet" />
           <div className="crowd">
-            {SAMPLE_NAMES.map((name, i) => (
+            {members.map((name, i) => (
               <div
                 key={name + i}
                 className={`person ${flash ? 'bow' : ''}`}
@@ -74,6 +70,7 @@ export function TempleView({ activeRitual, ritualLabel }: Props) {
                 <span className="body">🙇</span>
               </div>
             ))}
+            {members.length === 0 && <div className="muted" style={{ width: '100%', textAlign: 'center' }}>Chưa có Phật tử tương tác trong LIVE</div>}
           </div>
         </div>
 
