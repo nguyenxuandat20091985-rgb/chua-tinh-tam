@@ -6,9 +6,10 @@ import { getStats, getTopRanking, getLiveMembers, subscribe } from '../lib/store
 interface Props {
   activeRitual: RitualId | null;
   ritualLabel: string;
+  liveStatus: 'idle' | 'connecting' | 'connected' | 'disconnected' | 'ended';
 }
 
-export function TempleView({ activeRitual, ritualLabel }: Props) {
+export function TempleView({ activeRitual, ritualLabel, liveStatus }: Props) {
   const [flash, setFlash] = useState(false);
   const [stats, setStats] = useState(getStats());
   const [ranking, setRanking] = useState(getTopRanking(5));
@@ -35,7 +36,9 @@ export function TempleView({ activeRitual, ritualLabel }: Props) {
       <div className={`hall ${flash ? 'ritual-on' : ''} ${flash && activeRitual ? `ritual-${activeRitual}` : ''}`}>
         {/* Top status */}
         <div className="hall-top">
-          <span className="live-badge">LIVE</span>
+          <span className={`live-badge ${liveStatus === 'connected' ? 'is-live' : 'is-offline'}`}>
+            {liveStatus === 'connected' ? 'LIVE' : liveStatus === 'connecting' ? 'ĐANG KẾT NỐI' : liveStatus === 'ended' ? 'ĐÃ KẾT THÚC' : 'CHƯA KẾT NỐI'}
+          </span>
           <span className="hall-stats">
             🔥 {stats.incenseCount} hương · ⭐ {stats.totalMerit} CD
           </span>
@@ -46,7 +49,17 @@ export function TempleView({ activeRitual, ritualLabel }: Props) {
           <div className="rays" />
           {flash && activeRitual && <div className={`ritual-aura ${activeRitual}`} aria-hidden="true" />}
           <div className="buddha-wrap">
-            <div className="buddha">Buddha</div>
+            <div className="buddha" role="img" aria-label="Tượng Phật vàng">
+              <svg viewBox="0 0 120 120" aria-hidden="true">
+                <circle cx="60" cy="58" r="54" fill="url(#haloGold)" />
+                <circle cx="60" cy="43" r="17" fill="#56320f" />
+                <path d="M43 43c1-15 9-23 17-23s16 8 17 23c-5-5-10-7-17-7s-12 2-17 7Z" fill="#704515" />
+                <path d="M26 101c2-20 14-31 34-31s32 11 34 31c-18 9-50 9-68 0Z" fill="#56320f" />
+                <path d="M34 88c12 2 18 10 26 10s14-8 26-10" fill="none" stroke="#d9a844" strokeWidth="5" strokeLinecap="round" />
+                <path d="M20 106c12-8 25-8 40-1 15-7 28-7 40 1-19 12-61 12-80 0Z" fill="#8e243d" />
+                <defs><linearGradient id="haloGold" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#fff0a0" /><stop offset="1" stopColor="#b77b19" /></linearGradient></defs>
+              </svg>
+            </div>
             <div className="lotus-throne" />
           </div>
           {flash && activeRitual && (
@@ -198,7 +211,7 @@ export function TempleView({ activeRitual, ritualLabel }: Props) {
           background: rgba(0,0,0,0.35);
         }
         .live-badge {
-          background: #e11d48;
+          background: #6b6254;
           color: #fff;
           font-size: 0.7rem;
           font-weight: 800;
@@ -206,6 +219,8 @@ export function TempleView({ activeRitual, ritualLabel }: Props) {
           border-radius: 4px;
           letter-spacing: 0.06em;
         }
+        .live-badge.is-live { background: #e11d48; }
+        .live-badge.is-offline { background: #62513a; }
         .hall-stats {
           font-size: 0.78rem;
           color: #ffd700;
@@ -228,17 +243,12 @@ export function TempleView({ activeRitual, ritualLabel }: Props) {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          width: 110px; height: 110px;
+          width: 118px; height: 118px;
           border-radius: 50%;
-          background: linear-gradient(160deg, #ffe566, #c9a227 50%, #8b6914);
-          color: #3d2410;
-          font-weight: 800;
-          font-size: 0.85rem;
-          box-shadow:
-            0 0 30px rgba(255, 215, 0, 0.55),
-            inset 0 -8px 20px rgba(0,0,0,0.2);
-          border: 3px solid #ffe566;
+          background: radial-gradient(circle, rgba(255,235,150,.22), rgba(201,162,39,.08) 68%, transparent 70%);
+          filter: drop-shadow(0 0 22px rgba(255, 215, 0, .55));
         }
+        .buddha svg { width: 100%; height: 100%; overflow: visible; }
         .lotus-throne {
           width: 140px;
           height: 28px;
