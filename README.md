@@ -27,6 +27,16 @@ Máy chủ chạy tại http://localhost:3001. Kiểm tra tình trạng tại ht
 
 > Chỉ chạy `npm run dev` thì giao diện vẫn mở được, nhưng các chức năng kết nối TikTok LIVE sẽ không hoạt động vì máy chủ Socket.IO chưa chạy.
 
+## Cấu hình Tour 360° thật
+1. Sao chép `.env.example` thành `.env`.
+2. Gán `VITE_TEMPLE_PANORAMA_URL` bằng URL ảnh panorama equirectangular 2:1 hoặc video 360° (`.mp4`, `.webm`, `.mov`).
+3. Khởi động lại Vite sau khi đổi biến môi trường. Nếu để trống, ứng dụng dùng ảnh demo và phải coi đó là nội dung minh họa.
+
+Ví dụ:
+\`\`\`env
+VITE_TEMPLE_PANORAMA_URL=https://cdn.example.com/chua-tinh-tam-360.jpg
+\`\`\`
+
 ## Kết nối TikTok LIVE
 1. Mở một tài khoản TikTok đang phát LIVE.
 2. Trong ứng dụng, mở tab **Live & Điều khiển**.
