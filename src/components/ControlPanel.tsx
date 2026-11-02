@@ -17,6 +17,7 @@ import {
   getStats,
   resetMerit,
   addLiveMember,
+  removeLiveMember,
   clearLiveMembers,
   subscribe,
 } from '../lib/store';
@@ -243,6 +244,10 @@ export function ControlPanel({ onRitual, onLiveStatus }: Props) {
       <section className="box">
         <h4>🧪 Giả lập (test không cần Live)</h4>
         <input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Tên test" />
+        <div className="row">
+          <button type="button" className="btn-gold" onClick={() => addLiveMember(username)}>Vào lễ · xếp chỗ</button>
+          <button type="button" className="btn-dark" onClick={() => removeLiveMember(username)}>Rời ghế</button>
+        </div>
         <div className="row">
           <button type="button" className="btn-gold" onClick={() => applyResult(username, 'Tim', processLike())}>❤️ Tim</button>
           <button type="button" className="btn-gold" onClick={() => applyResult(username, 'Follow', processFollowOrShare())}>➕ Follow</button>

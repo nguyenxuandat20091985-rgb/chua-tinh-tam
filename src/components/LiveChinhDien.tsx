@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import type { RitualId } from '../lib/rules';
 import { RITUAL_LABELS } from '../lib/rules';
 import {
   getStats,
   getTopRanking,
   getLiveMembers,
+  getLiveSeats,
   subscribe,
 } from '../lib/store';
 import './LiveChinhDien.css';
@@ -20,19 +21,7 @@ interface Props {
 const HALL_IMG =
   (typeof import.meta !== 'undefined' &&
     (import.meta as any).env?.VITE_TEMPLE_HALL_URL) ||
-  'https://raw.githubusercontent.com/kentjuno/chanh-dien-online/main/assets/hall.jpg';
-
-/** Vị trí tag — chỉ dùng khi đã có người LIVE thật */
-const TAG_SLOTS = [
-  { side: 'left' as const, x: '6%', y: '55%' },
-  { side: 'right' as const, x: '6%', y: '55%' },
-  { side: 'left' as const, x: '14%', y: '62%' },
-  { side: 'right' as const, x: '14%', y: '62%' },
-  { side: 'left' as const, x: '8%', y: '70%' },
-  { side: 'right' as const, x: '8%', y: '70%' },
-  { side: 'left' as const, x: '18%', y: '76%' },
-  { side: 'left' as const, x: '5%', y: '82%' },
-];
+  '/temple-hall-preview.webp';
 
 const TONES = ['coral', 'gold', 'blue'] as const;
 
@@ -45,6 +34,7 @@ export function LiveChinhDien({
   const [stats, setStats] = useState(getStats());
   const [ranking, setRanking] = useState(getTopRanking(3));
   const [members, setMembers] = useState(getLiveMembers());
+  const [liveSeats, setLiveSeats] = useState(getLiveSeats());
   const [now, setNow] = useState(() =>
     new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
   );
@@ -54,6 +44,7 @@ export function LiveChinhDien({
       setStats(getStats());
       setRanking(getTopRanking(3));
       setMembers(getLiveMembers());
+      setLiveSeats(getLiveSeats());
     });
   }, []);
 
@@ -73,14 +64,15 @@ export function LiveChinhDien({
   const isOffline = !connected && liveStatus !== 'connecting';
 
   // Chỉ hiện name tag khi ĐÃ kết nối LIVE và có người thật — không bịa tên
-  const tags = useMemo(() => {
-    if (!connected) return [];
-    const live = members.filter(Boolean).slice(0, 8);
-    return live.map((name, i) => {
-      const slot = TAG_SLOTS[i % TAG_SLOTS.length];
-      return { name, ...slot };
-    });
-  }, [connected, members]);
+  const tags = useMemo(() => connected
+    ? liveSeats.map((seat) => ({
+      name: seat.occupiedBy || 'Phật tử',
+      side: seat.side,
+      x: `${seat.x}%`,
+      y: `${seat.y}%`,
+      depth: seat.depth,
+    }))
+    : [], [connected, liveSeats]);
 
   const peopleLabel =
     members.length > 0
@@ -155,7 +147,7 @@ export function LiveChinhDien({
               <span
                 key={tag.name + tag.y + tag.x}
                 className={`live-name-tag live-name-tag--${tag.side}`}
-                style={{ [tag.side]: tag.x, top: tag.y }}
+                style={{ [tag.side]: tag.x, top: tag.y, '--seat-depth': tag.depth } as CSSProperties}
               >
                 <i />
                 {tag.name}

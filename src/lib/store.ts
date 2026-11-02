@@ -1,4 +1,12 @@
-/** Simple in-memory store for merit ranking + ritual log */
+import {
+  assignSeat,
+  createSeats,
+  getOccupiedSeats,
+  markEveryoneAway,
+  markUserAway,
+  releaseExpiredSeats,
+  type Seat,
+} from './seats';
 
 export interface MeritEntry {
   name: string;
@@ -15,7 +23,8 @@ export interface RitualLog {
   detail: string;
 }
 
-const STORAGE_KEY = 'chua-tinh-tam:merit:v1';
+const STORAGE_KEY = 'chua-tinh-tam:merit:v2';
+const SEAT_GRACE_MS = 30_000;
 
 interface PersistedStore {
   ranking: [string, number][];
@@ -23,6 +32,7 @@ interface PersistedStore {
   incenseCount: number;
   totalMerit: number;
   liveMembers?: string[];
+  seats?: Seat[];
 }
 
 function loadStore(): PersistedStore | null {
@@ -44,8 +54,20 @@ let logs: RitualLog[] = initial?.logs ?? [];
 let incenseCount = Math.max(0, Number(initial?.incenseCount) || 0);
 let totalMerit = Math.max(0, Number(initial?.totalMerit) || 0);
 let liveMembers: string[] = initial?.liveMembers ?? [];
+let seats: Seat[] = releaseExpiredSeats(initial?.seats?.length ? initial.seats : createSeats());
+let releaseTimer: number | undefined;
 
 const listeners = new Set<() => void>();
+
+function scheduleSeatCleanup() {
+  if (typeof window === 'undefined') return;
+  window.clearTimeout(releaseTimer);
+  releaseTimer = window.setTimeout(() => {
+    seats = releaseExpiredSeats(seats);
+    persist();
+    listeners.forEach((fn) => fn());
+  }, SEAT_GRACE_MS + 50);
+}
 
 function persist() {
   if (typeof window === 'undefined') return;
@@ -56,6 +78,7 @@ function persist() {
       incenseCount,
       totalMerit,
       liveMembers: liveMembers.slice(0, 24),
+      seats,
     };
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(value));
   } catch {
@@ -70,7 +93,9 @@ function notify() {
 
 export function subscribe(fn: () => void) {
   listeners.add(fn);
-  return () => listeners.delete(fn);
+  return () => {
+    listeners.delete(fn);
+  };
 }
 
 export function addMerit(name: string, points: number) {
@@ -109,7 +134,18 @@ export function getLogs() {
 export function addLiveMember(name: string) {
   const cleanName = name.trim();
   if (!cleanName || cleanName === 'undefined') return;
+  const result = assignSeat(seats, cleanName);
+  seats = result.seats;
   liveMembers = [cleanName, ...liveMembers.filter((item) => item !== cleanName)].slice(0, 24);
+  notify();
+}
+
+export function removeLiveMember(name: string) {
+  const cleanName = name.trim();
+  if (!cleanName) return;
+  liveMembers = liveMembers.filter((item) => item !== cleanName);
+  seats = markUserAway(seats, cleanName, SEAT_GRACE_MS);
+  scheduleSeatCleanup();
   notify();
 }
 
@@ -117,9 +153,16 @@ export function getLiveMembers() {
   return liveMembers;
 }
 
+export function getLiveSeats(): Seat[] {
+  seats = releaseExpiredSeats(seats);
+  return getOccupiedSeats(seats);
+}
+
 export function clearLiveMembers() {
-  if (liveMembers.length === 0) return;
+  if (liveMembers.length === 0 && !seats.some((seat) => seat.status === 'occupied')) return;
   liveMembers = [];
+  seats = markEveryoneAway(seats, SEAT_GRACE_MS);
+  scheduleSeatCleanup();
   notify();
 }
 

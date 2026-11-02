@@ -47,5 +47,11 @@ Có thể dùng `@lonelyking011` hoặc tài khoản anh trong bảng điều kh
 ## Ghi chú
 
 - Bản web trên Vercel dùng ảnh nền hall.jpg (raw GitHub).  
-- Bản LIVE đầy đủ (100 chỗ, sprite Phật tử, TTS) chạy **local** theo hướng dẫn trên.  
+- Bản LIVE đầy đủ (100 chỗ, sprite Phật tử, TTS) chạy **local** theo hướng dẫn trên.
 - Không cần repo mới — giữ `chua-tinh-tam` cho web; dùng `chanh-dien-online/live` khi phát sóng.
+
+## Xếp chỗ người tham gia
+
+Web app có pool 48 ghế hiển thị trên ảnh chánh điện: 24 bên trái và 24 bên phải, trải trên 8 lớp chiều sâu. Khi TikTok gửi nickname mới, `addLiveMember()` tự động cấp ghế trống gần tượng trước rồi lấp dần ra phía camera; nickname quay lại trong 30 giây sẽ nhận lại ghế cũ. Khi ngắt kết nối, ghế chuyển sang trạng thái `away` trong 30 giây trước khi được giải phóng.
+
+Để kiểm tra không cần kết nối TikTok, mở bảng điều khiển và dùng phần **Giả lập**: nhập tên, bấm **Vào lễ · xếp chỗ** hoặc **Rời ghế**. Name tag chỉ hiện khi phiên ở trạng thái LIVE và được đặt theo tọa độ của ghế trên ảnh nền `public/temple-hall-preview.webp`.
