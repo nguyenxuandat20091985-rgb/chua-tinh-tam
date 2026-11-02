@@ -47,7 +47,7 @@ export default function App() {
         {tab === 'live' && (
           <div className="live-layout">
             <div className="col-temple">
-              <TempleView activeRitual={activeRitual} ritualLabel={ritualLabel} liveStatus={liveStatus} />
+              <TempleView activeRitual={activeRitual} ritualLabel={ritualLabel} liveStatus={liveStatus} onOffer={(ritual, label) => { setActiveRitual(ritual); setRitualLabel(label); }} />
             </div>
             <div className="col-panel">
               <details className="control-drawer" open={panelExpanded} onToggle={(event) => setPanelExpanded(event.currentTarget.open)}>

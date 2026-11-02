@@ -8,6 +8,7 @@ interface Props {
   activeRitual: RitualId | null;
   ritualLabel: string;
   liveStatus: 'idle' | 'connecting' | 'connected' | 'disconnected' | 'ended';
+  onOffer?: (ritual: RitualId, label: string) => void;
 }
 
 const CROWD = Array.from({ length: 200 }, (_, i) => ({
@@ -18,7 +19,7 @@ const CROWD = Array.from({ length: 200 }, (_, i) => ({
   shade: ['#7897a6', '#91a9b5', '#637f8d', '#a5b7bd'][i % 4],
 }));
 
-export function TempleView({ activeRitual, ritualLabel, liveStatus }: Props) {
+export function TempleView({ activeRitual, ritualLabel, liveStatus, onOffer }: Props) {
   const [flash, setFlash] = useState(false);
   const [stats, setStats] = useState(getStats());
   const [ranking, setRanking] = useState(getTopRanking(5));
@@ -139,9 +140,9 @@ export function TempleView({ activeRitual, ritualLabel, liveStatus }: Props) {
         </footer>
       </section>
       <div className="offering-actions" aria-label="Nghi thức dâng lễ">
-        <div className="offering-action"><span>🕯️</span><b>Hương trầm</b><small>Thành tâm dâng hương</small></div>
-        <div className="offering-action"><span>🪷</span><b>Sen nhỏ</b><small>Dâng một đóa sen</small></div>
-        <div className="offering-action premium"><span>🌸</span><b>Sen vàng</b><small>Đại lễ dâng hoa</small></div>
+        <button type="button" className="offering-action" onClick={() => onOffer?.('thap_huong', 'Dâng Hương Trầm')}><span>🕯️</span><b>Hương trầm</b><small>Thành tâm dâng hương</small></button>
+        <button type="button" className="offering-action" onClick={() => onOffer?.('hoa_sen', 'Dâng Sen Nhỏ')}><span>🪷</span><b>Sen nhỏ</b><small>Dâng một đóa sen</small></button>
+        <button type="button" className="offering-action premium" onClick={() => onOffer?.('dai_le_kim_long', 'Đại lễ Sen Vàng')}><span>🌸</span><b>Sen vàng</b><small>Đại lễ dâng hoa</small></button>
       </div>
       <style>{STYLES}</style>
     </div>
@@ -198,8 +199,8 @@ const STYLES = `
 .merit-row{display:flex;align-items:center;gap:5px;padding:3px 0;font-size:clamp(8px,1.8vw,11px)}.merit-row b{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.merit-row strong{color:#f7d16f}.medal{color:#ffdc81}.merit-empty{font-size:10px;color:#cbb88c;text-align:center;padding:6px 0}
 .scene-footer{position:absolute;z-index:10;bottom:0;left:0;right:0;display:flex;justify-content:space-between;gap:3px;padding:8px 9px;background:linear-gradient(transparent,#100805eF);font-size:clamp(8px,1.8vw,11px);color:#f8dda1}.scene-footer span:nth-child(2){font-weight:800;letter-spacing:.08em}
 .offering-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px 0 0}
-.offering-action{display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 4px;border-radius:11px;border:1px solid #c79a48;background:linear-gradient(160deg,#40200f,#1a0d08);color:#f9dfa0;text-align:center;box-shadow:0 4px 12px #0005}
-.offering-action>span{font-size:23px;filter:drop-shadow(0 0 7px #f4c35c66)}.offering-action b{font-size:clamp(10px,2.5vw,13px)}.offering-action small{font-size:9px;color:#c9ad79}.offering-action.premium{border-color:#e4a65c;background:linear-gradient(160deg,#5a1b27,#210d12)}
+.offering-action{appearance:none;width:100%;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 4px;border-radius:11px;border:1px solid #c79a48;background:linear-gradient(160deg,#40200f,#1a0d08);color:#f9dfa0;text-align:center;box-shadow:0 4px 12px #0005}
+.offering-action>span{font-size:23px;filter:drop-shadow(0 0 7px #f4c35c66)}.offering-action b{font-size:clamp(10px,2.5vw,13px)}.offering-action small{font-size:9px;color:#c9ad79}.offering-action.premium{border-color:#e4a65c;background:linear-gradient(160deg,#5a1b27,#210d12)}.offering-action:active{transform:translateY(1px) scale(.98);filter:brightness(1.2)}
 .ritual-overlay{position:absolute;z-index:20;inset:20% 0 12%;display:grid;place-items:center;pointer-events:none}
 .ritual-card{display:flex;flex-direction:column;align-items:center;gap:7px;padding:12px 20px;border-radius:15px;background:#120a0bdc;border:1px solid #ffdf83;box-shadow:0 0 35px #ffc84f77;color:#ffe5a1;animation:ritualPop 3.8s ease both}
 .ritual-card span{font-size:40px;filter:drop-shadow(0 0 12px #ffd76a)}.ritual-card b{font-size:clamp(12px,3vw,17px);text-align:center}
