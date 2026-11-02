@@ -117,6 +117,12 @@ export function getLiveMembers() {
   return liveMembers;
 }
 
+export function clearLiveMembers() {
+  if (liveMembers.length === 0) return;
+  liveMembers = [];
+  notify();
+}
+
 export function getStats() {
   return { incenseCount, totalMerit };
 }
