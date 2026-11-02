@@ -11,10 +11,10 @@
 
 Mở Terminal / PowerShell tại thư mục dự án:
 
-\`\`\`bash
+```bash
 npm install
 npm run dev:all
-\`\`\`
+```
 
 Sau khi thấy hai tiến trình khởi động, mở http://localhost:3000. Máy chủ TikTok Socket.IO chạy tại cổng 3001. Nhấn Ctrl+C để dừng cả hai tiến trình.
 
@@ -44,9 +44,9 @@ Máy chủ chạy tại http://localhost:3001. Kiểm tra tình trạng tại ht
 3. Khởi động lại Vite sau khi đổi biến môi trường. Nếu để trống, ứng dụng dùng ảnh demo và phải coi đó là nội dung minh họa.
 
 Ví dụ:
-\`\`\`env
+```env
 VITE_TEMPLE_PANORAMA_URL=https://cdn.example.com/chua-tinh-tam-360.jpg
-\`\`\`
+```
 
 ## Kết nối TikTok LIVE
 1. Mở một tài khoản TikTok đang phát LIVE.
