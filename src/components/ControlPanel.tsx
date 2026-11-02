@@ -15,6 +15,7 @@ import {
   getTopRanking,
   getLogs,
   getStats,
+  addLiveComment,
   resetMerit,
   addLiveMember,
   removeLiveMember,
@@ -23,6 +24,13 @@ import {
 } from '../lib/store';
 import { speak } from '../lib/tts';
 import { getSocket, connectTikTok, disconnectTikTok } from '../lib/tiktokSocket';
+
+const BLESSING_WORDS = ['bình an', 'an lành', 'hạnh phúc', 'sức khỏe', 'may mắn', 'hoan hỷ', 'nam mô', 'a di đà', 'cầu an', 'phước lành', 'chúc', 'mong'];
+
+function isBlessing(text: string) {
+  const normalized = text.toLowerCase().normalize('NFC');
+  return BLESSING_WORDS.some((word) => normalized.includes(word));
+}
 
 interface Props {
   onRitual?: (ritual: RitualId, label: string) => void;
@@ -68,7 +76,10 @@ export function ControlPanel({ onRitual, onLiveStatus }: Props) {
       setLastRitual(RITUAL_LABELS[result.ritual]);
       onRitual?.(result.ritual, RITUAL_LABELS[result.ritual]);
       if (ttsOn) {
-        speak(`${user}. ${RITUAL_LABELS[result.ritual]}. Cộng ${result.merit} công đức.`, 'vi-VN', voiceVol / 100);
+        const announcement = result.ritual === 'thap_huong'
+          ? `Mời đạo hữu ${user} dâng hương lễ Phật. Nguyện cầu bình an.`
+          : `${user}. ${RITUAL_LABELS[result.ritual]}. Cộng ${result.merit} công đức.`;
+        speak(announcement, 'vi-VN', voiceVol / 100);
       }
     },
     [onRitual, ttsOn, voiceVol]
@@ -88,6 +99,7 @@ export function ControlPanel({ onRitual, onLiveStatus }: Props) {
     };
     const onChat = (data: { nickname: string; comment: string }) => {
       addLiveMember(data.nickname || 'Phật tử');
+      addLiveComment(data.nickname || 'Phật tử', data.comment, isBlessing(data.comment) ? 'wish' : 'comment');
       setLiveChat((p) => [{ name: data.nickname, text: data.comment }, ...p].slice(0, 25));
       const result = processComment(data.comment);
       if (result) applyResult(data.nickname, `Live: ${data.comment.slice(0, 36)}`, result);

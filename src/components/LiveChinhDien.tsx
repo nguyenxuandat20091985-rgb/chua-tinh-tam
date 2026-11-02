@@ -6,6 +6,7 @@ import {
   getTopRanking,
   getLiveMembers,
   getLiveSeats,
+  getLiveComments,
   subscribe,
 } from '../lib/store';
 import './LiveChinhDien.css';
@@ -35,6 +36,7 @@ export function LiveChinhDien({
   const [ranking, setRanking] = useState(getTopRanking(3));
   const [members, setMembers] = useState(getLiveMembers());
   const [liveSeats, setLiveSeats] = useState(getLiveSeats());
+  const [liveComments, setLiveComments] = useState(getLiveComments(5));
   const [now, setNow] = useState(() =>
     new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
   );
@@ -45,6 +47,7 @@ export function LiveChinhDien({
       setRanking(getTopRanking(3));
       setMembers(getLiveMembers());
       setLiveSeats(getLiveSeats());
+      setLiveComments(getLiveComments(5));
     });
   }, []);
 
@@ -174,8 +177,18 @@ export function LiveChinhDien({
                 style={{ [pilgrim.side]: `${Math.max(1, pilgrim.x - 1.5)}%`, top: `${pilgrim.y + 4}%`, '--seat-depth': pilgrim.depth, '--pilgrim-delay': `${index * 140}ms` } as CSSProperties}
               >
                 <span className="pilgrim-route" />
-                <img src="/devotee-praying.webp" alt="Phật tử đang chắp tay lễ Phật" />
+                <img src={Array.from(pilgrim.name).reduce((sum, char) => sum + char.charCodeAt(0), 0) % 2 === 0 ? '/devotee-male-praying.webp' : '/devotee-praying.webp'} alt="Phật tử đang chắp tay lễ Phật" />
                 {activeRitual === 'thap_huong' && index === 0 && <span className="pilgrim-incense-smoke" />}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {connected && liveComments.some((comment) => comment.kind === 'wish') && (
+          <div className="blessing-feed" aria-label="Lời chúc tốt đẹp">
+            {liveComments.filter((comment) => comment.kind === 'wish').slice(0, 3).map((comment) => (
+              <div className="blessing-feed__item" key={comment.id}>
+                <span>✦</span><strong>{comment.name}</strong><em>{comment.text}</em>
               </div>
             ))}
           </div>

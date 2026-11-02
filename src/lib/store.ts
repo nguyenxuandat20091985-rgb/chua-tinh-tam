@@ -23,6 +23,14 @@ export interface RitualLog {
   detail: string;
 }
 
+export interface LiveComment {
+  id: string;
+  name: string;
+  text: string;
+  time: number;
+  kind: 'wish' | 'comment';
+}
+
 const STORAGE_KEY = 'chua-tinh-tam:merit:v2';
 const SEAT_GRACE_MS = 30_000;
 
@@ -33,6 +41,7 @@ interface PersistedStore {
   totalMerit: number;
   liveMembers?: string[];
   seats?: Seat[];
+  comments?: LiveComment[];
 }
 
 function loadStore(): PersistedStore | null {
@@ -55,6 +64,7 @@ let incenseCount = Math.max(0, Number(initial?.incenseCount) || 0);
 let totalMerit = Math.max(0, Number(initial?.totalMerit) || 0);
 let liveMembers: string[] = initial?.liveMembers ?? [];
 let seats: Seat[] = releaseExpiredSeats(initial?.seats?.length ? initial.seats : createSeats());
+let liveComments: LiveComment[] = initial?.comments ?? [];
 let releaseTimer: number | undefined;
 
 const listeners = new Set<() => void>();
@@ -79,6 +89,7 @@ function persist() {
       totalMerit,
       liveMembers: liveMembers.slice(0, 24),
       seats,
+      comments: liveComments.slice(0, 30),
     };
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(value));
   } catch {
@@ -129,6 +140,24 @@ export function getTopRanking(limit = 10): MeritEntry[] {
 
 export function getLogs() {
   return logs;
+}
+
+export function addLiveComment(name: string, text: string, kind: LiveComment['kind'] = 'comment') {
+  const cleanName = name.trim() || 'Phật tử';
+  const cleanText = text.trim();
+  if (!cleanText) return;
+  liveComments = [{
+    id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    name: cleanName,
+    text: cleanText,
+    time: Date.now(),
+    kind,
+  }, ...liveComments].slice(0, 30);
+  notify();
+}
+
+export function getLiveComments(limit = 6) {
+  return liveComments.slice(0, limit);
 }
 
 export function addLiveMember(name: string) {
