@@ -10,10 +10,11 @@ interface Props {
   liveStatus: 'idle' | 'connecting' | 'connected' | 'disconnected' | 'ended';
 }
 
-const CROWD = Array.from({ length: 54 }, (_, i) => ({
+const CROWD = Array.from({ length: 200 }, (_, i) => ({
   id: i,
   side: i % 2 === 0 ? 'left' : 'right',
-  row: Math.floor(i / 2) % 3,
+  row: Math.floor(i / 20),
+  col: Math.floor((i % 20) / 2),
   shade: ['#7897a6', '#91a9b5', '#637f8d', '#a5b7bd'][i % 4],
 }));
 
@@ -108,7 +109,7 @@ export function TempleView({ activeRitual, ritualLabel, liveStatus }: Props) {
         <div className="nave-floor">
           <div className="red-carpet"><div className="carpet-border"><span>✥　✥　✥　✥　✥　✥　✥</span></div></div>
           <div className="devotee-crowd" aria-hidden="true">
-            {CROWD.map(person => <div key={person.id} className={`devotee ${person.side} row-${person.row}`} style={{'--robe':person.shade} as CSSProperties}>
+            {CROWD.map(person => <div key={person.id} className={`devotee ${person.side} row-${person.row}`} style={{'--robe':person.shade, gridColumn: person.side === 'left' ? person.col + 1 : person.col + 17, gridRow: person.row + 1} as CSSProperties}>
               <i className="devotee-head"/><i className="devotee-body"/><i className="devotee-knee"/>
             </div>)}
           </div>
@@ -183,12 +184,12 @@ const STYLES = `
 .nave-floor:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 9%,#e0ae5222 9.2% 9.5%,transparent 9.8% 19%);opacity:.5}
 .red-carpet{position:absolute;z-index:1;top:0;bottom:0;left:50%;width:31%;transform:translateX(-50%);background:repeating-linear-gradient(0deg,#8c1025 0 25px,#a91d34 26px 28px,#7e1022 30px 54px);border-left:3px solid #e7bb62;border-right:3px solid #e7bb62;box-shadow:0 0 20px #0009}
 .carpet-border{position:absolute;inset:8px 4px;border:1px solid #e7b75a88;color:#efc76d;text-align:center;writing-mode:vertical-rl;letter-spacing:12px;font-size:9px;opacity:.8}
-.devotee-crowd{position:absolute;z-index:2;inset:4% 0 0;display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(3,1fr);pointer-events:none}
+.devotee-crowd{position:absolute;z-index:2;inset:4% 0 0;display:grid;grid-template-columns:repeat(26,minmax(0,1fr));grid-template-rows:repeat(10,minmax(0,1fr));pointer-events:none}
 .devotee{position:relative;display:flex;align-items:flex-end;justify-content:center;transform:scale(var(--scale,.85));filter:drop-shadow(0 3px 2px #0009)}
-.devotee.left{grid-column:1}.devotee.right{grid-column:2}.devotee.row-0{transform:scale(.7);opacity:.88}.devotee.row-1{transform:scale(.92)}.devotee.row-2{transform:scale(1.08)}
-.devotee-head{position:absolute;top:13%;width:18px;height:20px;border-radius:48% 48% 44% 44%;background:linear-gradient(90deg,#9b694e,#e0b28a);z-index:2}
-.devotee-body{position:absolute;bottom:0;width:56px;height:66%;border-radius:42% 42% 8% 8%;background:linear-gradient(90deg,#3c5c6b,var(--robe) 45%,#405f70);clip-path:polygon(28% 0,72% 0,100% 100%,0 100%);border-top:4px solid #b4c4c8}
-.devotee-knee{position:absolute;bottom:0;width:74px;height:20%;border-radius:50%;background:linear-gradient(90deg,#405e6e,var(--robe),#405e6e);opacity:.9}
+.devotee.row-0{opacity:.8}.devotee.row-1{opacity:.88}.devotee.row-2{opacity:.96}
+.devotee-head{position:absolute;top:12%;width:9px;height:10px;border-radius:48% 48% 44% 44%;background:linear-gradient(90deg,#9b694e,#e0b28a);z-index:2}
+.devotee-body{position:absolute;bottom:0;width:20px;height:68%;border-radius:42% 42% 8% 8%;background:linear-gradient(90deg,#3c5c6b,var(--robe) 45%,#405f70);clip-path:polygon(28% 0,72% 0,100% 100%,0 100%);border-top:2px solid #b4c4c8}
+.devotee-knee{position:absolute;bottom:0;width:24px;height:18%;border-radius:50%;background:linear-gradient(90deg,#405e6e,var(--robe),#405e6e);opacity:.9}
 .live-names{position:absolute;z-index:5;inset:4% 1% 0;display:flex;align-content:flex-start;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:4px 3px;pointer-events:none}
 .live-name{max-width:48%;display:flex;align-items:center;gap:4px;padding:2px 6px 2px 3px;border-radius:12px;background:#160c0bd9;border:1px solid #d9ad5b88;color:#fff3d1;font-size:clamp(8px,1.9vw,11px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 2px #000;animation:nameFloat 3s ease-in-out infinite alternate;animation-delay:var(--delay)}
 .live-name b{display:grid;place-items:center;flex:0 0 15px;height:15px;border-radius:50%;background:#d7a949;color:#3a1b0b;font-size:9px}.name-1{margin-top:16%}.name-2{margin-top:5%}.name-3{margin-top:22%}.name-4{margin-top:10%}.name-5{margin-top:28%}
@@ -206,6 +207,6 @@ const STYLES = `
 .is-ritual .incense-smoke i{border-left-color:#fff4d9aa;filter:blur(4px)}
 .ritual-thinh_chuong .halo-rings{animation:ringWave 1s ease-out 3}.ritual-go_mo .buddha-altar{animation:drumBeat .25s ease-in-out 5}.ritual-thap_huong .incense-smoke i{animation-duration:1.7s}.ritual-dai_le_kim_long .halo-rings{box-shadow:0 0 22px #fff0a8,0 0 65px #ffd65b,0 0 100px #ffd65b}
 @keyframes haloPulse{50%{filter:brightness(1.25);transform:translateX(-50%) scale(1.035)}}@keyframes lanternGlow{50%{filter:drop-shadow(0 0 20px #ffe08a);transform:translateY(-3px)}}@keyframes smokeRise{0%{transform:translateY(0) scale(.7);opacity:0}35%{opacity:.7}100%{transform:translate(12px,-70px) scale(1.5);opacity:0}}@keyframes nameFloat{to{transform:translateY(-5px)}}@keyframes petalFall{to{transform:translate(25px,115vh) rotate(420deg);opacity:.1}}@keyframes ritualPop{0%{opacity:0;transform:scale(.65) translateY(20px)}15%,80%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.95) translateY(-20px)}}@keyframes ringWave{to{box-shadow:0 0 0 35px #ffd65b00,0 0 50px #ffd65b}}@keyframes drumBeat{50%{transform:translateX(-50%) scale(1.025)}}
-@media(max-width:600px){.temple-live{max-width:100%}.sanctuary{border-radius:10px;max-height:none;min-height:0;height:auto;aspect-ratio:9/16}.merit-board{bottom:11%;width:42%;padding:6px}.devotee-head{width:13px;height:15px}.devotee-body{width:42px}.devotee-knee{width:54px}.live-name{font-size:8px}.side-offerings{top:41%}.offering-action{padding:7px 2px}.offering-action>span{font-size:20px}}
+@media(max-width:600px){.temple-live{max-width:100%}.sanctuary{border-radius:10px;max-height:none;min-height:0;height:auto;aspect-ratio:9/16}.merit-board{bottom:11%;width:42%;padding:6px}.devotee-head{width:8px;height:9px}.devotee-body{width:17px}.devotee-knee{width:21px}.live-name{font-size:8px}.side-offerings{top:41%}.offering-action{padding:7px 2px}.offering-action>span{font-size:20px}}
 @media(prefers-reduced-motion:reduce){.sanctuary *{animation:none!important}}
 `;
