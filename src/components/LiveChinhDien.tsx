@@ -208,7 +208,11 @@ export function LiveChinhDien({
                 style={{ [pilgrim.side]: `${Math.max(1, pilgrim.x - 1.5)}%`, top: `${pilgrim.y + 4}%`, '--seat-depth': pilgrim.depth, '--pilgrim-delay': `${index * 140}ms` } as CSSProperties}
               >
                 <span className="pilgrim-route" />
-                <img src={Array.from(pilgrim.name).reduce((sum, char) => sum + char.charCodeAt(0), 0) % 2 === 0 ? '/devotee-male-praying.webp' : '/devotee-praying.webp'} alt="Phật tử đang chắp tay lễ Phật" />
+                <img src={activeRitual === 'thap_huong' && index === 0
+                  ? '/devotee-male-praying.webp'
+                  : Array.from(pilgrim.name).reduce((sum, char) => sum + char.charCodeAt(0), 0) % 2 === 0
+                    ? '/devotee-male-praying.webp'
+                    : '/devotee-praying.webp'} alt="Phật tử đang chắp tay lễ Phật" />
                 {activeRitual === 'thap_huong' && index === 0 && <span className="pilgrim-incense-smoke" />}
               </div>
             ))}
