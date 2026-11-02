@@ -20,3 +20,22 @@ jobs:
         run: npm install
       - name: Build
         run: npm run build
+      - name: Smoke test combined dev server
+        run: |
+          node scripts/dev-all.js > /tmp/chua-tinh-tam-dev.log 2>&1 &
+          APP_PID=$!
+          cleanup() {
+            kill -TERM "$APP_PID" 2>/dev/null || true
+            wait "$APP_PID" || true
+          }
+          trap cleanup EXIT
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://localhost:3001/health >/dev/null && curl -fsS http://localhost:3000/ >/dev/null; then
+              echo "Frontend :3000 and TikTok server :3001 are responding."
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/chua-tinh-tam-dev.log
+          echo "Combined dev server did not become ready in 30 seconds."
+          exit 1
