@@ -9,7 +9,7 @@ import { Server } from 'socket.io';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { WebcastPushConnection } from 'tiktok-live-connector';
+import { WebcastPushConnection } from 'tiktok-live-connector/legacy';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -74,7 +74,6 @@ io.on('connection', (socket) => {
     const tiktok = new WebcastPushConnection(uniqueId, {
       processInitialData: false,
       enableExtendedGiftInfo: true,
-      requestPollingIntervalMs: 2000,
     });
 
     connections.set(socket.id, tiktok);
