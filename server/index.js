@@ -14,15 +14,29 @@ import { WebcastPushConnection } from 'tiktok-live-connector';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const httpServer = createServer(app);
-const io = new Server(httpServer, {
-  cors: { origin: '*' },
-});
 
-app.use(cors());
+// Chỉ cho phép frontend đã khai báo kết nối. Có thể thêm nhiều origin,
+// phân tách bằng dấu phẩy trong FRONTEND_ORIGINS.
+const allowedOrigins = new Set(
+  (process.env.FRONTEND_ORIGINS || 'https://chua-tinh-tam.vercel.app')
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean)
+);
+const originAllowed = (origin) => !origin || allowedOrigins.has(origin);
+const corsOptions = {
+  origin(origin, callback) {
+    if (originAllowed(origin)) return callback(null, true);
+    return callback(new Error('Origin không được phép kết nối Chùa Tịnh Tâm'));
+  },
+};
+const io = new Server(httpServer, { cors: corsOptions });
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 app.get('/health', (_req, res) => {
-  res.json({ ok: true, service: 'chua-tinh-tam', tiktokConnections: connections.size });
+  res.json({ ok: true, service: 'chua-tinh-tam', status: 'ready', uptimeSec: Math.floor(process.uptime()), tiktokConnections: connections.size });
 });
 
 // Production: serve built frontend
